@@ -1,7 +1,7 @@
 import { AvatarUpload } from '@/components/AvatarUpload';
+import { Navbar } from '@/components/Navbar';
 import { ProfileMessages } from '@/components/ProfileMessages';
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
