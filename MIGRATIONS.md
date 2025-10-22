@@ -24,8 +24,38 @@ supabase/
 
 1. **Install Supabase CLI**
 
+   **Windows (PowerShell):**
+
+   ```powershell
+   # Using Scoop
+   scoop install supabase
+
+   # Or download from GitHub releases
+   # https://github.com/supabase/cli/releases
+   ```
+
+   **macOS:**
+
    ```bash
-   npm install -g supabase
+   brew install supabase/tap/supabase
+   ```
+
+   **Linux:**
+
+   ```bash
+   # Using Homebrew
+   brew install supabase/tap/supabase
+
+   # Or download from GitHub releases
+   curl -Lo supabase.tar.gz https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz
+   tar -xzf supabase.tar.gz
+   sudo mv supabase /usr/local/bin/supabase
+   ```
+
+   **Verify installation:**
+
+   ```bash
+   supabase --version
    ```
 
 2. **Initialize Supabase (First time only)**
@@ -310,25 +340,28 @@ Supabase automatically backs up your database. To restore:
 ## Local Development Workflow
 
 ```bash
-# 1. Start local Supabase
-supabase start
+# 1. Install Supabase CLI (one time)
+# See installation instructions above
 
-# 2. Create migration
+# 2. Link to your project (one time)
+supabase link --project-ref YOUR_PROJECT_ID
+
+# 3. Create migration
 supabase migration new my_feature
 
-# 3. Edit the migration file
+# 4. Edit the migration file
 code supabase/migrations/[timestamp]_my_feature.sql
 
-# 4. Apply migration
+# 5. Test migration
 supabase db push
 
-# 5. Test in local app
+# 6. Test in local app
 npm run dev
 
-# 6. Reset if needed
+# 7. Reset if needed (reapplies all migrations from scratch)
 supabase db reset
 
-# 7. Commit when ready
+# 8. Commit when ready
 git add supabase/migrations/
 git commit -m "feat: add my feature"
 git push

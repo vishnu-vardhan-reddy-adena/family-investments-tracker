@@ -112,6 +112,11 @@ Before pushing migrations:
 # Check Supabase CLI is installed
 supabase --version
 
+# If not installed:
+# Windows: scoop install supabase
+# macOS/Linux: brew install supabase/tap/supabase
+# Or download from: https://github.com/supabase/cli/releases
+
 # Re-link to project
 supabase link --project-ref YOUR_PROJECT_ID
 

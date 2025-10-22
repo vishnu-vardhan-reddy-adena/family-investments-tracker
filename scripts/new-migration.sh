@@ -5,8 +5,13 @@ set -e
 
 # Check if Supabase CLI is installed
 if ! command -v supabase &> /dev/null; then
-    echo "❌ Supabase CLI not found. Installing..."
-    npm install -g supabase
+    echo "❌ Supabase CLI not found."
+    echo ""
+    echo "Please install Supabase CLI:"
+    echo "  macOS/Linux: brew install supabase/tap/supabase"
+    echo "  Or download from: https://github.com/supabase/cli/releases"
+    echo ""
+    exit 1
 fi
 
 # Get migration name from argument

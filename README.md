@@ -48,13 +48,38 @@ Since you're already in the project directory, skip to step 2.
 # Install Node.js dependencies
 npm install
 
-# Install Supabase CLI globally
-npm install -g supabase
-
 # Install Python dependencies
 cd scripts
 pip install -r requirements.txt
 cd ..
+```
+
+**Install Supabase CLI:**
+
+**Windows:**
+
+```powershell
+scoop install supabase
+# Or download from: https://github.com/supabase/cli/releases
+```
+
+**macOS:**
+
+```bash
+brew install supabase/tap/supabase
+```
+
+**Linux:**
+
+```bash
+brew install supabase/tap/supabase
+# Or download from: https://github.com/supabase/cli/releases
+```
+
+Verify installation:
+
+```bash
+supabase --version
 ```
 
 ### 3. Set Up Supabase

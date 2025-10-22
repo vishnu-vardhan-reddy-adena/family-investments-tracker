@@ -6,8 +6,13 @@ setlocal enabledelayedexpansion
 REM Check if Supabase CLI is installed
 where supabase >nul 2>nul
 if %errorlevel% neq 0 (
-    echo Installing Supabase CLI...
-    npm install -g supabase
+    echo Supabase CLI not found.
+    echo.
+    echo Please install Supabase CLI:
+    echo   Windows: scoop install supabase
+    echo   Or download from: https://github.com/supabase/cli/releases
+    echo.
+    exit /b 1
 )
 
 REM Get migration name from argument
