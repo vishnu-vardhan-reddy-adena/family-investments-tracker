@@ -20,9 +20,7 @@ export async function GET() {
     .single();
 
   // List files in storage
-  const { data: files, error: filesError } = await supabase.storage
-    .from('avatars')
-    .list(user.id);
+  const { data: files, error: filesError } = await supabase.storage.from('avatars').list(user.id);
 
   return NextResponse.json({
     user: {
