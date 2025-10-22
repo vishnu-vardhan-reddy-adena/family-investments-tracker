@@ -448,12 +448,45 @@ Before pushing to production:
 - [ ] Migration file follows naming convention
 - [ ] SQL is idempotent (uses IF EXISTS/IF NOT EXISTS)
 - [ ] Tested locally with `supabase db reset && supabase db push`
+- [ ] **Build check passes:** `npm run build` ✨ **IMPORTANT!**
+- [ ] **Type check passes:** `npm run type-check`
+- [ ] **Code formatted:** `npm run format`
 - [ ] TypeScript types updated in `src/types/database.types.ts`
 - [ ] API routes updated if schema changed
 - [ ] RLS policies tested
 - [ ] Indexes added for new queries
 - [ ] Migration documented in commit message
 - [ ] Reviewed by team (if applicable)
+
+### Pre-Push Command Sequence
+
+Always run these commands before pushing:
+
+```bash
+# 1. Test migration locally
+npm run db:reset && npm run db:push
+
+# 2. Type check
+npm run type-check
+
+# 3. Build check (catches runtime errors!)
+npm run build
+
+# 4. Format code
+npm run format
+
+# 5. If all pass, commit and push
+git add .
+git commit -m "migration: your feature name"
+git push origin main
+```
+
+⚠️ **Critical:** Always run `npm run build` before pushing! This catches:
+
+- TypeScript errors
+- Missing imports
+- Invalid syntax
+- Runtime issues
 
 ## GitHub Actions Status
 

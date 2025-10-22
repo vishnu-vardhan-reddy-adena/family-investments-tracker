@@ -25,12 +25,33 @@ npm run db:migrate
 
 ### Deploy to Production
 
+**⚠️ IMPORTANT: Always check build before pushing!**
+
 ```bash
-# Commit and push (GitHub Actions will handle deployment)
+# Step 1: Test migration
+npm run db:reset && npm run db:push
+
+# Step 2: Type check
+npm run type-check
+
+# Step 3: Build check (REQUIRED!)
+npm run build
+
+# Step 4: Format
+npm run format
+
+# Step 5: If all pass, deploy
 git add supabase/migrations/
 git commit -m "migration: add feature name"
 git push origin main
 ```
+
+**Why build check matters:**
+
+- Catches TypeScript errors
+- Validates imports and syntax
+- Prevents broken deployments
+- GitHub Actions will fail if build fails
 
 ## 📝 Common Migration Patterns
 
