@@ -264,10 +264,49 @@ CREATE POLICY "Users can view own notifications" ON public.notifications
   FOR SELECT USING (auth.uid() = user_id);
 ```
 
+### Add a Storage Bucket
+
+```sql
+-- Migration: 20251022120001_add_documents_bucket.sql
+
+-- Create bucket
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'documents',
+  'documents',
+  false, -- private bucket
+  10485760, -- 10MB
+  ARRAY['application/pdf', 'image/jpeg', 'image/png']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+-- Add RLS policies for storage
+DROP POLICY IF EXISTS "Users can upload own documents" ON storage.objects;
+
+CREATE POLICY "Users can upload own documents"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+CREATE POLICY "Users can read own documents"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'documents' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+```
+
 ### Add a Column
 
 ```sql
--- Migration: 20251022120001_add_profile_bio.sql
+-- Migration: 20251022120002_add_profile_bio.sql
 
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS bio TEXT;

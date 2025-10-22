@@ -1,8 +1,38 @@
 # Avatar Upload Setup Guide
 
-## Supabase Storage Configuration
+## Automated Setup (Recommended)
 
-To enable avatar uploads, you need to create a storage bucket in Supabase.
+The avatar storage bucket and policies are **automatically created** via database migrations when you deploy to Supabase!
+
+### GitHub Actions Deployment
+
+When you push migrations to the `main` branch, GitHub Actions will:
+
+1. ✅ Create the `avatars` storage bucket
+2. ✅ Set it to public access
+3. ✅ Configure file size limit (2MB)
+4. ✅ Set allowed MIME types (JPEG, PNG, GIF, WEBP)
+5. ✅ Apply all RLS policies automatically
+
+**Migration file:** `supabase/migrations/20251022000002_setup_storage_buckets.sql`
+
+### Manual Deployment
+
+If you want to set up storage locally or manually:
+
+```bash
+# Link to your project
+supabase link --project-ref YOUR_PROJECT_ID
+
+# Apply migrations (includes storage setup)
+supabase db push
+```
+
+---
+
+## Manual Setup (Alternative)
+
+If you prefer to set up storage manually in the Supabase Dashboard:
 
 ### Step 1: Create Storage Bucket
 

@@ -87,15 +87,19 @@ supabase --version
 **Option A: Using Migrations (Recommended)**
 
 ```bash
-# Initialize Supabase
-supabase init
-
 # Link to your Supabase project
 supabase link --project-ref your-project-id
 
-# Apply all migrations
+# Apply all migrations (creates tables, RLS policies, triggers, functions, AND storage buckets)
 supabase db push
 ```
+
+This will automatically set up:
+
+- ✅ All database tables and schemas
+- ✅ Row Level Security (RLS) policies
+- ✅ Database triggers and functions
+- ✅ Storage buckets (avatars) with proper policies
 
 **Option B: Manual Setup**
 
