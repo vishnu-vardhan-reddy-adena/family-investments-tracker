@@ -15,8 +15,8 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = EXCLUDED.file_size_limit,
   allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- Enable RLS on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Note: RLS is already enabled on storage.objects by default in Supabase
+-- No need to explicitly enable it
 
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Users can upload own avatars" ON storage.objects;
