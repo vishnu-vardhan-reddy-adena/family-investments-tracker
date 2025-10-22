@@ -27,6 +27,33 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single();
 
+  // If profile doesn't exist, create it
+  if (profileError && profileError.code === 'PGRST116') {
+    console.log('Profile not found, creating one for user:', user.id);
+    const { data: newProfile, error: createError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Failed to create profile:', createError);
+    }
+  }
+
+  // Re-fetch profile after potential creation
+  const { data: finalProfile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
   // Fetch user preferences
   const { data: preferences, error: preferencesError } = await supabase
     .from('user_preferences')
@@ -34,21 +61,24 @@ export default async function ProfilePage() {
     .eq('user_id', user.id)
     .single();
 
-  // If profile or preferences don't exist, they should be created by the trigger
-  // But let's handle the case where they might not exist yet
-  if (profileError) {
-    console.error('Profile error:', profileError);
+  // If preferences don't exist, create them
+  if (preferencesError && preferencesError.code === 'PGRST116') {
+    console.log('Preferences not found, creating for user:', user.id);
+    await supabase.from('user_preferences').insert({
+      user_id: user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
   }
 
-  if (preferencesError) {
-    console.error('Preferences error:', preferencesError);
-  }
+  // Use finalProfile instead of profile
+  const profileData = finalProfile;
 
   // Debug logging
   console.log('Profile data:', {
-    full_name: profile?.full_name,
-    phone: profile?.phone,
-    avatar_url: profile?.avatar_url,
+    full_name: profileData?.full_name,
+    phone: profileData?.phone,
+    avatar_url: profileData?.avatar_url,
   });
 
   return (
@@ -178,15 +208,15 @@ export default async function ProfilePage() {
                 {process.env.NODE_ENV === 'development' && (
                   <div className="rounded bg-gray-100 p-4 text-xs dark:bg-gray-700">
                     <p className="font-bold">Debug Info:</p>
-                    <p>Profile loaded: {profile ? 'Yes' : 'No'}</p>
-                    <p>Full Name: {profile?.full_name || 'Not set'}</p>
-                    <p>Phone: {profile?.phone || 'Not set'}</p>
-                    <p>Avatar URL: {profile?.avatar_url || 'Not set'}</p>
+                    <p>Profile loaded: {profileData ? 'Yes' : 'No'}</p>
+                    <p>Full Name: {profileData?.full_name || 'Not set'}</p>
+                    <p>Phone: {profileData?.phone || 'Not set'}</p>
+                    <p>Avatar URL: {profileData?.avatar_url || 'Not set'}</p>
                   </div>
                 )}
 
                 {/* Avatar Upload */}
-                <AvatarUpload currentAvatarUrl={profile?.avatar_url} />
+                <AvatarUpload currentAvatarUrl={profileData?.avatar_url} />
 
                 {/* Full Name */}
                 <div>
@@ -200,7 +230,7 @@ export default async function ProfilePage() {
                     id="full_name"
                     name="full_name"
                     type="text"
-                    defaultValue={profile?.full_name || ''}
+                    defaultValue={profileData?.full_name || ''}
                     className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="John Doe"
                   />
@@ -239,7 +269,7 @@ export default async function ProfilePage() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    defaultValue={profile?.phone || ''}
+                    defaultValue={profileData?.phone || ''}
                     className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     placeholder="+91 98765 43210"
                   />
