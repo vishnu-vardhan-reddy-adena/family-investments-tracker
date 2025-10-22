@@ -10,7 +10,7 @@ export default function LoginPage() {
             <p className="text-gray-600 dark:text-gray-300">Sign in to track your portfolio</p>
           </div>
 
-          <form action="/auth/login" method="POST" className="space-y-6">
+          <form action="/auth/login" method="POST" className="space-y-6" suppressHydrationWarning>
             <div>
               <label
                 htmlFor="email"
@@ -26,6 +26,7 @@ export default function LoginPage() {
                 required
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="you@example.com"
+                suppressHydrationWarning
               />
             </div>
 
@@ -44,6 +45,7 @@ export default function LoginPage() {
                 required
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 placeholder="••••••••"
+                suppressHydrationWarning
               />
             </div>
 
@@ -54,6 +56,7 @@ export default function LoginPage() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  suppressHydrationWarning
                 />
                 <label
                   htmlFor="remember-me"
@@ -74,6 +77,7 @@ export default function LoginPage() {
             <button
               type="submit"
               className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              suppressHydrationWarning
             >
               Sign In
             </button>

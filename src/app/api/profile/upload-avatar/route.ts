@@ -32,19 +32,23 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error('Avatar upload: No authenticated user');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Generate unique filename
+    console.log('Uploading avatar for user:', user.id);
+
+    // Generate unique filename with user ID folder structure
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`;
 
     // Convert File to ArrayBuffer then to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Upload to Supabase Storage
+    console.log('Uploading to bucket: avatars, path:', filePath);
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, buffer, {
@@ -53,9 +57,17 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+      console.error('Upload error details:', {
+        message: uploadError.message,
+        error: uploadError,
+      });
+      return NextResponse.json(
+        { error: `Failed to upload file: ${uploadError.message}` },
+        { status: 500 }
+      );
     }
+
+    console.log('Upload successful:', uploadData);
 
     // Get public URL
     const {

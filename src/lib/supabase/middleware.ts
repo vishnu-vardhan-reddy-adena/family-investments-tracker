@@ -36,7 +36,15 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/signup', '/auth', '/forgot-password', '/terms', '/privacy'];
+  const publicRoutes = [
+    '/login',
+    '/signup',
+    '/auth',
+    '/forgot-password',
+    '/reset-password',
+    '/terms',
+    '/privacy',
+  ];
   const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
   // Allow access to home page
