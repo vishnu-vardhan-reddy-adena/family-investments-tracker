@@ -1,8 +1,14 @@
 -- Portfolio Tracker Database Schema for Supabase
--- This file contains all table definitions, indexes, and RLS policies
+-- Migration: Initial Schema Setup
+-- Created: 2025-10-22
+-- Description: Complete database schema with all tables, indexes, RLS policies, and functions
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Drop incomplete tables if they exist (from previous partial migrations)
+DROP TABLE IF EXISTS public.transactions CASCADE;
+DROP TABLE IF EXISTS public.investments CASCADE;
 
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (

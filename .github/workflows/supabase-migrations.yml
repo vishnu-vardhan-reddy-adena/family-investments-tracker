@@ -37,7 +37,7 @@ jobs:
 
       - name: Run database migrations
         run: |
-          supabase db push
+          echo "Y" | supabase db push
 
       - name: Verify migration status
         run: |
