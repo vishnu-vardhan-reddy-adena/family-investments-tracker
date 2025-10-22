@@ -303,6 +303,27 @@ The app uses Tailwind CSS. Customize colors and theme in:
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Type check without building
+- `npm run format` - Auto-format code with Prettier
+- `npm run format:check` - Check code formatting
+
+## 🔒 Automated Git Hooks
+
+The project uses **Husky** to automatically validate code before pushing:
+
+**Pre-Push Checks (runs automatically):**
+
+- ✅ Type checking (`npm run type-check`)
+- ✅ Build validation (`npm run build`)
+- ✅ Format checking (`npm run format:check`)
+
+**Benefits:**
+
+- Prevents broken code from reaching remote repository
+- Catches TypeScript errors, missing imports, syntax issues
+- Enforces code quality standards
+- No more failed GitHub Actions due to build errors
+
+**See [GIT_HOOKS_SETUP.md](./GIT_HOOKS_SETUP.md) for details.**
 
 ## 🚀 Deployment
 

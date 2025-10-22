@@ -15,7 +15,8 @@
     "db:push": "supabase db push",
     "db:migrate": "supabase migration list",
     "db:new": "supabase migration new",
-    "db:status": "supabase db diff"
+    "db:status": "supabase db diff",
+    "prepare": "husky"
   },
   "keywords": [
     "portfolio",
@@ -45,6 +46,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1"
   }

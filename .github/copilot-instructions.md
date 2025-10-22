@@ -20,6 +20,7 @@ Indian Portfolio Tracker with Next.js 14+, Supabase, and Python NSE data integra
 - ✅ Setup Auto-formatting on Save
 - ✅ Database Schema with RLS Policies
 - ✅ GitHub Actions for Automated Migrations
+- ✅ Automated Git Hooks with Husky
 
 ## Technology Stack
 
@@ -50,6 +51,7 @@ Indian Portfolio Tracker with Next.js 14+, Supabase, and Python NSE data integra
 - **Migration Pattern**: Use `npm run db:new feature_name` for new migrations
 - **Testing**: Run `npm run db:reset && npm run db:push` before committing migrations
 - **Auto-format**: Enabled on save via Prettier + Tailwind plugin
+- **Git Hooks**: Husky automatically runs type-check, build, and format checks before push
 
 ## Migration Workflow
 
