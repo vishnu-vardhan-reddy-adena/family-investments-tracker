@@ -1,8 +1,4 @@
 # Supabase local development settings.
-# These settings are specific to local development and should not be committed.
-
-# Project settings
-project_id = "your-project-id"
 
 [api]
 enabled = true
@@ -41,12 +37,6 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
-# Edge Functions settings
-[functions]
-# Set to empty string to disable, or specify the path to your functions directory
-functions_path = "./supabase/functions"
-
-# Migration settings
 [db.pooler]
 enabled = false
 port = 54329
