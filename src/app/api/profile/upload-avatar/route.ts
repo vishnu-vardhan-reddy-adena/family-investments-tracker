@@ -74,6 +74,8 @@ export async function POST(request: Request) {
       data: { publicUrl },
     } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
+    console.log('Public URL generated:', publicUrl);
+
     // Update profile with new avatar URL
     const { error: updateError } = await supabase
       .from('profiles')
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
       console.error('Profile update error:', updateError);
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }
+
+    console.log('Profile updated with avatar URL:', publicUrl);
 
     return NextResponse.redirect(
       new URL('/profile?success=Profile photo updated successfully', request.url)

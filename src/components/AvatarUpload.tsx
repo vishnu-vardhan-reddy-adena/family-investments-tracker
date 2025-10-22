@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string | null;
@@ -9,6 +9,12 @@ interface AvatarUploadProps {
 export function AvatarUpload({ currentAvatarUrl }: AvatarUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatarUrl || null);
+
+  // Update preview when currentAvatarUrl changes
+  useEffect(() => {
+    console.log('AvatarUpload: currentAvatarUrl changed to:', currentAvatarUrl);
+    setPreviewUrl(currentAvatarUrl || null);
+  }, [currentAvatarUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

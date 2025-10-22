@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
+// Disable caching for this page to always fetch fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function ProfilePage() {
   const supabase = await createClient();
 
@@ -39,6 +43,13 @@ export default async function ProfilePage() {
   if (preferencesError) {
     console.error('Preferences error:', preferencesError);
   }
+
+  // Debug logging
+  console.log('Profile data:', {
+    full_name: profile?.full_name,
+    phone: profile?.phone,
+    avatar_url: profile?.avatar_url,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -163,6 +174,17 @@ export default async function ProfilePage() {
               </div>
 
               <form action="/api/profile/update" method="POST" className="space-y-6">
+                {/* Debug Info - Remove after testing */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="rounded bg-gray-100 p-4 text-xs dark:bg-gray-700">
+                    <p className="font-bold">Debug Info:</p>
+                    <p>Profile loaded: {profile ? 'Yes' : 'No'}</p>
+                    <p>Full Name: {profile?.full_name || 'Not set'}</p>
+                    <p>Phone: {profile?.phone || 'Not set'}</p>
+                    <p>Avatar URL: {profile?.avatar_url || 'Not set'}</p>
+                  </div>
+                )}
+
                 {/* Avatar Upload */}
                 <AvatarUpload currentAvatarUrl={profile?.avatar_url} />
 
