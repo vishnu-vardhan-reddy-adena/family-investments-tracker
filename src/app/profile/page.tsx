@@ -87,25 +87,14 @@ export default async function ProfilePage() {
         <ProfileMessages />
       </Suspense>
 
-      {/* Header */}
-      <header className="bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Manage your account settings and preferences
-              </p>
-            </div>
-            <Link
-              href="/dashboard"
-              className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Navigation Bar */}
+      <Navbar
+        user={{
+          email: user.email,
+          full_name: profileData?.full_name,
+          avatar_url: profileData?.avatar_url,
+        }}
+      />
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
