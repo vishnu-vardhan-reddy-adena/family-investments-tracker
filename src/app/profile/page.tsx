@@ -1,3 +1,4 @@
+import { AvatarUpload } from '@/components/AvatarUpload';
 import { ProfileMessages } from '@/components/ProfileMessages';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
@@ -163,45 +164,7 @@ export default async function ProfilePage() {
 
               <form action="/api/profile/update" method="POST" className="space-y-6">
                 {/* Avatar Upload */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Profile Photo
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-                      {profile?.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt="Profile"
-                          className="h-20 w-20 rounded-full object-cover"
-                        />
-                      ) : (
-                        <svg
-                          className="h-12 w-12 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                      >
-                        Change Photo
-                      </button>
-                      <p className="mt-2 text-xs text-gray-500">JPG, PNG or GIF (MAX. 2MB)</p>
-                    </div>
-                  </div>
-                </div>
+                <AvatarUpload currentAvatarUrl={profile?.avatar_url} />
 
                 {/* Full Name */}
                 <div>
