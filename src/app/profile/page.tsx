@@ -16,7 +16,28 @@ export default async function ProfilePage() {
   }
 
   // Fetch user profile
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // Fetch user preferences
+  const { data: preferences, error: preferencesError } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  // If profile or preferences don't exist, they should be created by the trigger
+  // But let's handle the case where they might not exist yet
+  if (profileError) {
+    console.error('Profile error:', profileError);
+  }
+
+  if (preferencesError) {
+    console.error('Preferences error:', preferencesError);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -364,7 +385,11 @@ export default async function ProfilePage() {
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
-                    <input type="checkbox" className="peer sr-only" defaultChecked />
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      defaultChecked={preferences?.email_notifications ?? true}
+                    />
                     <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
                   </label>
                 </div>
@@ -380,7 +405,11 @@ export default async function ProfilePage() {
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
-                    <input type="checkbox" className="peer sr-only" />
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      defaultChecked={preferences?.price_alerts ?? false}
+                    />
                     <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
                   </label>
                 </div>
@@ -396,7 +425,11 @@ export default async function ProfilePage() {
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
-                    <input type="checkbox" className="peer sr-only" defaultChecked />
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      defaultChecked={preferences?.weekly_reports ?? true}
+                    />
                     <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
                   </label>
                 </div>
