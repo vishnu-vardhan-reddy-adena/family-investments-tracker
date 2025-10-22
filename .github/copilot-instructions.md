@@ -1,8 +1,8 @@
-# Portfolio Tracker - Copilot Instructions
+# TrakInvests - Copilot Instructions
 
 ## Project Overview
 
-Indian Portfolio Tracker with Next.js 14+, Supabase, and Python NSE data integration.
+TrakInvests - Indian Portfolio Tracker with Next.js 14+, Supabase, and Python NSE data integration.
 
 ## Completed Steps
 

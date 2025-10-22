@@ -1,10 +1,11 @@
+import { MuiThemeProvider } from '@/components/MuiThemeProvider';
 import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Portfolio Tracker - Track Your Investments',
+  title: 'TrakInvests - Your AI-Powered Investment Tracker',
   description:
-    'Comprehensive portfolio tracker for Indian stocks, mutual funds, ETFs, FDs, NPS, EPFO, and real estate',
+    'Track and manage your Indian investments with TrakInvests. Monitor stocks, mutual funds, ETFs, FDs, NPS, EPFO, and real estate all in one place with real-time NSE data.',
 };
 
 export default function RootLayout({
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <MuiThemeProvider>{children}</MuiThemeProvider>
+      </body>
     </html>
   );
 }

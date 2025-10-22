@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { Logo } from './Logo';
+import { DarkModeToggle } from './MuiThemeProvider';
 
 interface NavbarProps {
   user: {
     email?: string;
     full_name?: string | null;
     avatar_url?: string | null;
+    role?: 'admin' | 'user';
   };
 }
 
@@ -27,19 +30,19 @@ export function Navbar({ user }: NavbarProps) {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="bg-linear-to-r from-blue-600 to-indigo-700 shadow-lg">
+    <nav className="border-b border-violet-200/20 bg-white/80 backdrop-blur-lg dark:border-violet-700/20 dark:bg-gray-900/80">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-                <span className="text-2xl">💰</span>
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-white">Portfolio Tracker</h1>
-                <p className="text-xs text-blue-100">Indian Investments</p>
-              </div>
+            <Link href="/dashboard" className="transition-transform hover:scale-105">
+              <Logo size="md" variant="icon-only" />
+            </Link>
+            <Link href="/dashboard" className="ml-3 hidden sm:block">
+              <h1 className="bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text font-['Space_Grotesk'] text-xl font-bold text-transparent">
+                TrakInvests
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Track • Grow • Prosper</p>
             </Link>
           </div>
 
@@ -49,10 +52,10 @@ export function Navbar({ user }: NavbarProps) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'bg-white/20 text-white shadow-lg backdrop-blur-sm'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    ? 'bg-linear-to-r from-violet-600 to-purple-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600 dark:text-gray-300 dark:hover:bg-violet-950/30 dark:hover:text-violet-400'
                 }`}
               >
                 <span className="mr-2">{item.icon}</span>
@@ -62,10 +65,40 @@ export function Navbar({ user }: NavbarProps) {
           </div>
 
           {/* Right side - Profile and Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-xl p-2 text-gray-600 transition-all hover:bg-violet-50 hover:text-violet-600 md:hidden dark:text-gray-400 dark:hover:bg-violet-950/30 dark:hover:text-violet-400"
+              aria-label="Toggle menu"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {mobileMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <div className="hidden md:block">
+              <DarkModeToggle />
+            </div>
+
             {/* Notifications */}
             <button
-              className="hidden rounded-lg p-2 text-blue-100 transition-colors hover:bg-white/10 hover:text-white md:block"
+              className="hidden rounded-xl p-2 text-gray-600 transition-all hover:bg-violet-50 hover:text-violet-600 md:block dark:text-gray-400 dark:hover:bg-violet-950/30 dark:hover:text-violet-400"
               title="Notifications"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,17 +115,22 @@ export function Navbar({ user }: NavbarProps) {
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center space-x-3 rounded-lg bg-white/10 px-3 py-2 text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                className="flex items-center space-x-2 rounded-xl border border-gray-200 bg-white px-2 py-2 transition-all hover:border-violet-300 hover:shadow-md sm:space-x-3 sm:px-3 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-600"
               >
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white/20">
+                <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-violet-500 to-purple-600 sm:h-8 sm:w-8">
                   {user.avatar_url ? (
                     <img
                       src={user.avatar_url}
                       alt="Profile"
-                      className="h-8 w-8 rounded-full object-cover"
+                      className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8"
                     />
                   ) : (
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg
+                      className="h-4 w-4 text-white sm:h-5 sm:w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -103,11 +141,13 @@ export function Navbar({ user }: NavbarProps) {
                   )}
                 </div>
                 <div className="hidden text-left lg:block">
-                  <p className="text-sm font-medium">{user.full_name || 'User'}</p>
-                  <p className="text-xs text-blue-100">{user.email}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                 </div>
                 <svg
-                  className={`h-4 w-4 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`}
+                  className={`hidden h-4 w-4 text-gray-500 transition-transform sm:block dark:text-gray-400 ${profileMenuOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -158,6 +198,51 @@ export function Navbar({ user }: NavbarProps) {
                         </svg>
                         Profile Settings
                       </Link>
+                      {user.role === 'admin' && (
+                        <>
+                          <Link
+                            href="/admin"
+                            className="flex items-center px-4 py-2 text-sm text-violet-600 transition-colors hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/30"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <svg
+                              className="mr-3 h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                              />
+                            </svg>
+                            Admin Dashboard
+                          </Link>
+                          <Link
+                            href="/admin/users"
+                            className="flex items-center px-4 py-2 text-sm text-violet-600 transition-colors hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/30"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <svg
+                              className="mr-3 h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                              />
+                            </svg>
+                            Manage Users
+                          </Link>
+                          <div className="border-t border-gray-100 dark:border-gray-700"></div>
+                        </>
+                      )}
                       <Link
                         href="/dashboard"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -233,21 +318,22 @@ export function Navbar({ user }: NavbarProps) {
         </div>
 
         {/* Mobile Navigation Menu */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-white/10 pt-2 pb-3 md:hidden">
+          <div className="border-t border-violet-200/20 bg-white/95 pt-2 pb-3 backdrop-blur-lg md:hidden dark:border-violet-700/20 dark:bg-gray-900/95">
             <div className="space-y-1 px-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`block rounded-lg px-3 py-2 text-base font-medium transition-colors ${
+                  className={`block rounded-xl px-4 py-3 text-base font-medium transition-all ${
                     isActive(item.href)
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                      ? 'bg-linear-to-r from-violet-600 to-purple-600 text-white shadow-lg'
+                      : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600 dark:text-gray-300 dark:hover:bg-violet-950/30 dark:hover:text-violet-400'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span className="mr-2">{item.icon}</span>
+                  <span className="mr-3">{item.icon}</span>
                   {item.name}
                 </Link>
               ))}

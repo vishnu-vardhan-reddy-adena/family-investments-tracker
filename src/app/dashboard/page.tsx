@@ -1,6 +1,16 @@
+import { AddInvestmentButton } from '@/components/AddInvestmentButton';
+import { InvestmentCard } from '@/components/InvestmentCard';
 import { Navbar } from '@/components/Navbar';
+import { PortfolioChart } from '@/components/PortfolioChart';
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import PieChartIcon from '@mui/icons-material/PieChart';
+import SavingsIcon from '@mui/icons-material/Savings';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import WorkIcon from '@mui/icons-material/Work';
+import { Box, Button, Typography } from '@mui/material';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
@@ -17,219 +27,321 @@ export default async function DashboardPage() {
   // Fetch user profile
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
-  // Fetch portfolios
-  const { data: portfolios } = await supabase.from('portfolios').select('*').eq('user_id', user.id);
+  // Fetch real investments from database
+  const { data: dbInvestments, error: investmentsError } = await supabase
+    .from('investments')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (investmentsError) {
+    console.error('Error fetching investments:', investmentsError);
+  }
+
+  // Investment type configuration
+  const investmentConfig: Record<
+    string,
+    { label: string; icon: React.ReactElement; color: string }
+  > = {
+    stock: {
+      label: 'Stocks',
+      icon: <ShowChartIcon sx={{ fontSize: 28 }} />,
+      color: '#4D79FF', // Electric Blue
+    },
+    mutual_fund: {
+      label: 'Mutual Funds',
+      icon: <PieChartIcon sx={{ fontSize: 28 }} />,
+      color: '#1DD1A1', // Vibrant Teal
+    },
+    etf: {
+      label: 'ETFs',
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
+      color: '#FF6B6B', // Coral Pink
+    },
+    fixed_deposit: {
+      label: 'Fixed Deposits',
+      icon: <AccountBalanceIcon sx={{ fontSize: 28 }} />,
+      color: '#FFD93D', // Sunny Yellow
+    },
+    nps: {
+      label: 'NPS',
+      icon: <SavingsIcon sx={{ fontSize: 28 }} />,
+      color: '#A78BFA', // Violet
+    },
+    epfo: {
+      label: 'EPF',
+      icon: <WorkIcon sx={{ fontSize: 28 }} />,
+      color: '#34D399', // Green
+    },
+    real_estate: {
+      label: 'Real Estate',
+      icon: <AccountBalanceIcon sx={{ fontSize: 28 }} />,
+      color: '#F59E0B', // Amber
+    },
+    gold: {
+      label: 'Gold',
+      icon: <SavingsIcon sx={{ fontSize: 28 }} />,
+      color: '#FBBF24', // Yellow
+    },
+    bond: {
+      label: 'Bonds',
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
+      color: '#8B5CF6', // Purple
+    },
+    other: {
+      label: 'Other',
+      icon: <PieChartIcon sx={{ fontSize: 28 }} />,
+      color: '#6B7280', // Gray
+    },
+  };
+
+  // Group investments by type and calculate totals
+  const investmentGroups: Record<
+    string,
+    { investments: any[]; totalValue: number; holdings: number }
+  > = {};
+
+  (dbInvestments || []).forEach((inv: any) => {
+    const type = inv.investment_type || 'other';
+    if (!investmentGroups[type]) {
+      investmentGroups[type] = { investments: [], totalValue: 0, holdings: 0 };
+    }
+    investmentGroups[type].investments.push(inv);
+    investmentGroups[type].totalValue += parseFloat(inv.current_value || inv.total_invested || 0);
+    investmentGroups[type].holdings += 1;
+  });
+
+  // Create investment cards with real data
+  const investments = Object.entries(investmentGroups).map(([type, data]) => {
+    const config = investmentConfig[type] || investmentConfig.other;
+    const totalInvested = data.investments.reduce(
+      (sum, inv) => sum + parseFloat(inv.total_invested || 0),
+      0
+    );
+    const change = data.totalValue - totalInvested;
+    const changePercent = totalInvested > 0 ? (change / totalInvested) * 100 : 0;
+
+    return {
+      type: config.label,
+      icon: config.icon,
+      totalValue: data.totalValue,
+      change: change,
+      changePercent: changePercent,
+      holdings: data.holdings,
+      color: config.color,
+    };
+  });
+
+  const totalValue = investments.reduce((sum, inv) => sum + inv.totalValue, 0);
+  const totalChange = investments.reduce((sum, inv) => sum + inv.change, 0);
+  const totalChangePercent = ((totalChange / (totalValue - totalChange)) * 100).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[#F7F9FC] dark:bg-[#0F1419]">
       {/* Navigation Bar */}
       <Navbar
         user={{
           email: user.email,
           full_name: profile?.full_name,
           avatar_url: profile?.avatar_url,
+          role: profile?.role,
         }}
       />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Stats Grid */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total Value
-            </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">₹0.00</div>
-            <div className="mt-1 text-sm text-green-600">+0.00%</div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total Invested
-            </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">₹0.00</div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
-              Profit/Loss
-            </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">₹0.00</div>
-            <div className="mt-1 text-sm text-gray-600">0.00%</div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
-              Portfolios
-            </div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {portfolios?.length || 0}
-            </div>
-          </div>
-        </div>
-
-        {/* Portfolios Section */}
-        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-          <div className="border-b border-gray-200 p-6 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Your Portfolios
-              </h2>
-              <Link
-                href="/portfolios/new"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {/* Welcome Section */}
+        <Box className="mb-8">
+          <Box className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <Box>
+              <Typography
+                variant="h3"
+                className="mb-2 font-['Space_Grotesk'] font-bold"
+                sx={{
+                  background: 'linear-gradient(90deg, #4D79FF 0%, #1DD1A1 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
               >
-                Create Portfolio
-              </Link>
-            </div>
-          </div>
+                Welcome back, {profile?.full_name || 'Investor'}! 👋
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Track all your investments in one place
+              </Typography>
+            </Box>
+            <AddInvestmentButton />
+          </Box>
 
-          <div className="p-6">
-            {portfolios && portfolios.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {portfolios.map((portfolio) => (
-                  <Link
-                    key={portfolio.id}
-                    href={`/portfolios/${portfolio.id}`}
-                    className="block rounded-lg border border-gray-200 p-4 transition-colors hover:border-blue-500 dark:border-gray-700"
-                  >
-                    <h3 className="mb-1 font-semibold text-gray-900 dark:text-white">
-                      {portfolio.name}
-                    </h3>
-                    {portfolio.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {portfolio.description}
-                      </p>
-                    )}
-                    {portfolio.is_primary && (
-                      <span className="mt-2 inline-block rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        Primary
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="py-12 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                  No portfolios
-                </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Get started by creating a new portfolio.
-                </p>
-                <div className="mt-6">
-                  <Link
-                    href="/portfolios/new"
-                    className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-                  >
-                    Create Portfolio
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+          {/* Total Portfolio Summary */}
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #4D79FF 0%, #1DD1A1 100%)',
+              borderRadius: '24px',
+              padding: { xs: 3, sm: 4 },
+              color: 'white',
+              boxShadow: '0 8px 30px rgba(77, 121, 255, 0.3)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Background pattern */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                width: '300px',
+                height: '300px',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+                filter: 'blur(60px)',
+              }}
+            />
+
+            <Box className="relative z-10">
+              <Typography variant="body2" className="mb-2 opacity-90">
+                Total Portfolio Value
+              </Typography>
+              <Typography variant="h2" className="mb-3 font-['Space_Grotesk'] font-bold">
+                ₹{totalValue.toLocaleString('en-IN')}
+              </Typography>
+              <Box className="flex items-center gap-2">
+                <TrendingUpIcon />
+                <Typography variant="h6" className="font-semibold">
+                  {totalChange >= 0 ? '+' : ''}₹{totalChange.toLocaleString('en-IN')} (
+                  {totalChange >= 0 ? '+' : ''}
+                  {totalChangePercent}%)
+                </Typography>
+                <Typography variant="body2" className="opacity-80">
+                  • Today
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Investment Cards Grid */}
+        <Box className="mb-8">
+          <Typography variant="h5" className="mb-4 font-['Space_Grotesk'] font-bold">
+            Your Investments
+          </Typography>
+          {investments.length === 0 ? (
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #4D79FF15 0%, #1DD1A115 100%)',
+                border: '2px dashed #4D79FF40',
+                borderRadius: '24px',
+                padding: { xs: 4, sm: 6 },
+                textAlign: 'center',
+              }}
+            >
+              <ShowChartIcon
+                sx={{ fontSize: 64, color: '#4D79FF', opacity: 0.5, marginBottom: 2 }}
+              />
+              <Typography variant="h6" className="mb-2 font-['Space_Grotesk'] font-bold">
+                No investments yet
+              </Typography>
+              <Typography variant="body1" color="text.secondary" className="mb-4">
+                Start tracking your portfolio by adding your first investment
+              </Typography>
+              <AddInvestmentButton />
+            </Box>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {investments.map((investment) => (
+                <InvestmentCard key={investment.type} {...investment} />
+              ))}
+            </div>
+          )}
+        </Box>
+
+        {/* Portfolio Chart */}
+        <Box className="mb-8">
+          <PortfolioChart />
+        </Box>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Link
-            href="/investments/add"
-            className="block rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
-          >
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Add Investment
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Add stocks, MFs, or other assets
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/family"
-            className="block rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
-          >
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-8 w-8 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Manage Family</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Add family members</p>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/reports"
-            className="block rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
-          >
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-8 w-8 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">View Reports</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Analytics and insights</p>
-              </div>
-            </div>
-          </Link>
-        </div>
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #FFD93D15 0%, #FF6B6B15 100%)',
+            border: '2px solid #FFD93D40',
+            borderRadius: '24px',
+            padding: { xs: 3, sm: 4 },
+          }}
+        >
+          <Typography variant="h5" className="mb-4 font-['Space_Grotesk'] font-bold">
+            Quick Actions
+          </Typography>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{
+                borderRadius: '16px',
+                py: 2,
+                borderColor: '#4D79FF',
+                color: '#4D79FF',
+                fontWeight: 600,
+                '&:hover': {
+                  borderColor: '#4D79FF',
+                  background: '#4D79FF15',
+                },
+              }}
+            >
+              Buy Stock
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{
+                borderRadius: '16px',
+                py: 2,
+                borderColor: '#1DD1A1',
+                color: '#1DD1A1',
+                fontWeight: 600,
+                '&:hover': {
+                  borderColor: '#1DD1A1',
+                  background: '#1DD1A115',
+                },
+              }}
+            >
+              Add SIP
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{
+                borderRadius: '16px',
+                py: 2,
+                borderColor: '#FFD93D',
+                color: '#FFD93D',
+                fontWeight: 600,
+                '&:hover': {
+                  borderColor: '#FFD93D',
+                  background: '#FFD93D15',
+                },
+              }}
+            >
+              Create FD
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{
+                borderRadius: '16px',
+                py: 2,
+                borderColor: '#FF6B6B',
+                color: '#FF6B6B',
+                fontWeight: 600,
+                '&:hover': {
+                  borderColor: '#FF6B6B',
+                  background: '#FF6B6B15',
+                },
+              }}
+            >
+              View Reports
+            </Button>
+          </div>
+        </Box>
       </main>
     </div>
   );
