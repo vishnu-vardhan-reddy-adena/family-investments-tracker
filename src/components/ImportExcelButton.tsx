@@ -95,6 +95,7 @@ export default function ImportExcelButton() {
               symbol = symbol.split(':')[1];
             }
 
+            // Return all fields including metadata
             return {
               symbol: symbol,
               company_name:
@@ -113,6 +114,17 @@ export default function ImportExcelButton() {
                 row['(Current Price)'],
               isin: row.isin || row.ISIN || row['Security Id'] || row['(Security Id)'],
               security_code: row['Security Code'] || row['(Security Code)'],
+              // Include all additional metadata fields
+              Sector: row.Sector || row['(Sector)'],
+              Industry: row.Industry || row['(Industry)'],
+              'Industry Type': row['Industry Type'] || row['(Industry Type)'],
+              'Company Type': row['Company Type'] || row['(Company Type)'],
+              'Macro-Economic Indicator':
+                row['Macro-Economic Indicator'] || row['(Macro-Economic Indicator)'],
+              'Industry Subgroup Name':
+                row['Industry Subgroup Name'] || row['(Industry Subgroup Name)'],
+              'Market Capitalization':
+                row['Market Capitalization'] || row['(Market Capitalization)'],
             };
           });
 
