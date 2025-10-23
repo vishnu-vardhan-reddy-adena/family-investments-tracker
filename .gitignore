@@ -54,4 +54,3 @@ ENV/
 pip-log.txt
 pip-delete-this-directory.txt
 .pytest_cache/
-D:\PF Track\scripts\.env
