@@ -1,4 +1,5 @@
 import { AddInvestmentButton } from '@/components/AddInvestmentButton';
+import FetchNSEDataButton from '@/components/FetchNSEDataButton';
 import { InvestmentCard } from '@/components/InvestmentCard';
 import { Navbar } from '@/components/Navbar';
 import { PortfolioChart } from '@/components/PortfolioChart';
@@ -169,7 +170,10 @@ export default async function DashboardPage() {
                 Track all your investments in one place
               </Typography>
             </Box>
-            <AddInvestmentButton />
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <FetchNSEDataButton />
+              <AddInvestmentButton />
+            </Box>
           </Box>
 
           {/* Total Portfolio Summary */}

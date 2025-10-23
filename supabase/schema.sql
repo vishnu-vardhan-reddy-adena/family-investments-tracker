@@ -277,12 +277,25 @@ CREATE POLICY "Users can delete own transactions" ON public.transactions
     )
   );
 
--- Market data policies (read-only for all authenticated users)
+-- Market data policies
 CREATE POLICY "All authenticated users can view market data" ON public.market_data
   FOR SELECT USING (auth.role() = 'authenticated');
 
+CREATE POLICY "Authenticated users can insert market data" ON public.market_data
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update market data" ON public.market_data
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+-- Mutual fund data policies
 CREATE POLICY "All authenticated users can view mutual fund data" ON public.mutual_fund_data
   FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can insert mutual fund data" ON public.mutual_fund_data
+  FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update mutual fund data" ON public.mutual_fund_data
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
 
 -- User preferences policies
 CREATE POLICY "Users can view own preferences" ON public.user_preferences
