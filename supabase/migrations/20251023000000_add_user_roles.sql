@@ -194,14 +194,8 @@ SELECT
   (SELECT COUNT(*) FROM public.profiles WHERE created_at > NOW() - INTERVAL '30 days') as new_users_30d,
   (SELECT COUNT(*) FROM public.transactions WHERE created_at > NOW() - INTERVAL '30 days') as new_transactions_30d;
 
--- Grant access to admin view
+-- Grant access to admin view (access control is handled by the application layer)
 GRANT SELECT ON public.admin_dashboard_stats TO authenticated;
-
--- RLS for admin view
-CREATE POLICY "Only admins can view dashboard stats"
-  ON public.admin_dashboard_stats
-  FOR SELECT
-  USING (public.is_admin(auth.uid()));
 
 -- Add comment to role column
 COMMENT ON COLUMN public.profiles.role IS 'User role: admin has full access, user has limited access';
