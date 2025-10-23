@@ -136,6 +136,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 6. Setup Admin User (First Time Setup)
+
+For initial setup, you need to promote at least one user to admin to access features like Excel import.
+
+**Quick Setup** (Promote first registered user):
+
+```powershell
+# Windows
+cd scripts
+.\setup-admin.ps1 -FirstUser
+
+# Linux/Mac
+cd scripts
+chmod +x setup-admin.sh
+./setup-admin.sh -f
+```
+
+**Or promote specific user**:
+
+```powershell
+# Windows
+.\setup-admin.ps1 -Email "user@example.com"
+
+# Linux/Mac
+./setup-admin.sh -e "user@example.com"
+```
+
+📚 **Full Guide**: See [ADMIN_SETUP.md](./ADMIN_SETUP.md) or [QUICK_ADMIN_SETUP.md](./QUICK_ADMIN_SETUP.md)
+
 ## 🔄 Database Migrations
 
 This project uses **version-controlled migrations** managed by Supabase CLI and automated via GitHub Actions.

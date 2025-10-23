@@ -1,5 +1,6 @@
 import { AddInvestmentButton } from '@/components/AddInvestmentButton';
 import FetchNSEDataButton from '@/components/FetchNSEDataButton';
+import ImportExcelButton from '@/components/ImportExcelButton';
 import { InvestmentCard } from '@/components/InvestmentCard';
 import { Navbar } from '@/components/Navbar';
 import { PortfolioChart } from '@/components/PortfolioChart';
@@ -107,14 +108,15 @@ export default async function DashboardPage() {
       investmentGroups[type] = { investments: [], totalValue: 0, holdings: 0 };
     }
     investmentGroups[type].investments.push(inv);
-    
+
     // Calculate current value and total invested from quantity and prices
-    const currentValue = parseFloat(inv.quantity || 0) * parseFloat(inv.current_price || inv.purchase_price || 0);
+    const currentValue =
+      parseFloat(inv.quantity || 0) * parseFloat(inv.current_price || inv.purchase_price || 0);
     const totalInvested = parseFloat(inv.quantity || 0) * parseFloat(inv.purchase_price || 0);
-    
+
     investmentGroups[type].totalValue += currentValue || 0;
     investmentGroups[type].holdings += 1;
-    
+
     // Store calculated values on the investment object for later use
     inv.calculated_current_value = currentValue;
     inv.calculated_total_invested = totalInvested;
@@ -144,9 +146,8 @@ export default async function DashboardPage() {
   const totalValue = investments.reduce((sum, inv) => sum + inv.totalValue, 0);
   const totalChange = investments.reduce((sum, inv) => sum + inv.change, 0);
   const totalInvestedAmount = totalValue - totalChange;
-  const totalChangePercent = totalInvestedAmount > 0 
-    ? ((totalChange / totalInvestedAmount) * 100).toFixed(2)
-    : '0.00';
+  const totalChangePercent =
+    totalInvestedAmount > 0 ? ((totalChange / totalInvestedAmount) * 100).toFixed(2) : '0.00';
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] dark:bg-[#0F1419]">
@@ -183,6 +184,8 @@ export default async function DashboardPage() {
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {/* Only show Import Excel button for admin users */}
+              {profile?.role === 'admin' && <ImportExcelButton />}
               <FetchNSEDataButton />
               <AddInvestmentButton />
             </Box>

@@ -10,6 +10,7 @@ export interface Database {
           full_name: string | null;
           phone: string | null;
           avatar_url: string | null;
+          role: 'admin' | 'user';
           created_at: string;
           updated_at: string;
         };
@@ -19,6 +20,7 @@ export interface Database {
           full_name?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
+          role?: 'admin' | 'user';
           created_at?: string;
           updated_at?: string;
         };
@@ -28,6 +30,7 @@ export interface Database {
           full_name?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
+          role?: 'admin' | 'user';
           created_at?: string;
           updated_at?: string;
         };
@@ -268,6 +271,68 @@ export interface Database {
           last_updated?: string;
           data_source?: string;
           raw_data?: Json | null;
+        };
+      };
+      stock_metadata: {
+        Row: {
+          id: string;
+          symbol: string;
+          company_name: string;
+          sector: string | null;
+          industry: string | null;
+          industry_type: string | null;
+          industry_sub_group: string | null;
+          macro_economic_indicator: string | null;
+          market_cap_category: 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Micro Cap' | null;
+          market_cap: number | null;
+          pe_ratio: number | null;
+          pb_ratio: number | null;
+          dividend_yield: number | null;
+          in_nifty_50: boolean | null;
+          in_nifty_500: boolean | null;
+          exchange: string | null;
+          last_updated: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          symbol: string;
+          company_name: string;
+          sector?: string | null;
+          industry?: string | null;
+          industry_type?: string | null;
+          industry_sub_group?: string | null;
+          macro_economic_indicator?: string | null;
+          market_cap_category?: 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Micro Cap' | null;
+          market_cap?: number | null;
+          pe_ratio?: number | null;
+          pb_ratio?: number | null;
+          dividend_yield?: number | null;
+          in_nifty_50?: boolean | null;
+          in_nifty_500?: boolean | null;
+          exchange?: string | null;
+          last_updated?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          symbol?: string;
+          company_name?: string;
+          sector?: string | null;
+          industry?: string | null;
+          industry_type?: string | null;
+          industry_sub_group?: string | null;
+          macro_economic_indicator?: string | null;
+          market_cap_category?: 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Micro Cap' | null;
+          market_cap?: number | null;
+          pe_ratio?: number | null;
+          pb_ratio?: number | null;
+          dividend_yield?: number | null;
+          in_nifty_50?: boolean | null;
+          in_nifty_500?: boolean | null;
+          exchange?: string | null;
+          last_updated?: string | null;
+          created_at?: string | null;
         };
       };
       mutual_fund_data: {
