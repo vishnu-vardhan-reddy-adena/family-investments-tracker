@@ -41,6 +41,26 @@ CREATE TABLE IF NOT EXISTS public.stock_metadata (
   )
 );
 
+-- Add missing columns to stock_metadata table
+ALTER TABLE public.stock_metadata
+ADD COLUMN IF NOT EXISTS industry_type VARCHAR(100) NULL;
+
+ALTER TABLE public.stock_metadata
+ADD COLUMN IF NOT EXISTS industry_sub_group VARCHAR(150) NULL;
+
+ALTER TABLE public.stock_metadata
+ADD COLUMN IF NOT EXISTS macro_economic_indicator VARCHAR(100) NULL;
+
+-- Create index for industry_type
+CREATE INDEX IF NOT EXISTS idx_stock_metadata_industry_type
+ON public.stock_metadata USING btree (industry_type);
+
+-- Add comments on new columns
+COMMENT ON COLUMN public.stock_metadata.industry_type IS 'Industry type from NSE export (e.g., Heavy Electrical Equipment)';
+COMMENT ON COLUMN public.stock_metadata.industry_sub_group IS 'Industry subgroup classification';
+COMMENT ON COLUMN public.stock_metadata.macro_economic_indicator IS 'Macro-economic indicator category (e.g., Industrials, Energy)';
+
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_stock_metadata_symbol ON public.stock_metadata USING btree (symbol);
 CREATE INDEX IF NOT EXISTS idx_stock_metadata_sector ON public.stock_metadata USING btree (sector);
