@@ -77,7 +77,7 @@ export default async function AdminDashboardPage() {
 
         {/* Stats Cards */}
         <Grid container spacing={3} className="mb-8">
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #4D79FF15 0%, #1DD1A115 100%)',
@@ -108,7 +108,7 @@ export default async function AdminDashboardPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #1DD1A115 0%, #34D39915 100%)',
@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #FF6B6B15 0%, #FFD93D15 100%)',
@@ -170,7 +170,7 @@ export default async function AdminDashboardPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #FFD93D15 0%, #4D79FF15 100%)',

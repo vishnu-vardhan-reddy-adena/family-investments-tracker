@@ -2,13 +2,16 @@ import { logAuditEvent, requireAdmin } from '@/lib/auth/roles';
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function PUT(request: NextRequest, { params }: { params: { userId: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
   try {
     // Require admin role
     const admin = await requireAdmin();
     const supabase = await createClient();
 
-    const { userId } = params;
+    const { userId } = await params;
     const body = await request.json();
     const { role } = body;
 
@@ -61,13 +64,16 @@ export async function PUT(request: NextRequest, { params }: { params: { userId: 
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
   try {
     // Require admin role
     await requireAdmin();
     const supabase = await createClient();
 
-    const { userId } = params;
+    const { userId } = await params;
 
     // Get user profile with role
     const { data: profile, error } = await supabase
