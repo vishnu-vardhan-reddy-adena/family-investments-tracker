@@ -190,7 +190,7 @@ SELECT
   (SELECT COUNT(*) FROM public.portfolios) as total_portfolios,
   (SELECT COUNT(*) FROM public.investments) as total_investments,
   (SELECT COUNT(*) FROM public.transactions) as total_transactions,
-  (SELECT SUM(COALESCE(current_value, total_invested, 0)) FROM public.investments) as total_portfolio_value,
+  (SELECT SUM(COALESCE(quantity * current_price, quantity * purchase_price, 0)) FROM public.investments) as total_portfolio_value,
   (SELECT COUNT(*) FROM public.profiles WHERE created_at > NOW() - INTERVAL '30 days') as new_users_30d,
   (SELECT COUNT(*) FROM public.transactions WHERE created_at > NOW() - INTERVAL '30 days') as new_transactions_30d;
 
