@@ -84,41 +84,73 @@ COMMENT ON COLUMN public.stock_metadata.market_cap IS 'Market capitalization in 
 ALTER TABLE public.stock_metadata ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: All authenticated users can read, only admins can write
-CREATE POLICY "All authenticated users can view stock metadata"
-  ON public.stock_metadata
-  FOR SELECT
-  TO authenticated
-  USING (true);
+-- Create policies only if they don't exist
+DO $$
+BEGIN
+  -- Create SELECT policy if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'stock_metadata'
+    AND policyname = 'All authenticated users can view stock metadata'
+  ) THEN
+    CREATE POLICY "All authenticated users can view stock metadata"
+      ON public.stock_metadata
+      FOR SELECT
+      TO authenticated
+      USING (true);
+  END IF;
 
-CREATE POLICY "Admin users can insert stock metadata"
-  ON public.stock_metadata
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  -- Create INSERT policy if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'stock_metadata'
+    AND policyname = 'Admin users can insert stock metadata'
+  ) THEN
+    CREATE POLICY "Admin users can insert stock metadata"
+      ON public.stock_metadata
+      FOR INSERT
+      TO authenticated
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM public.profiles
+          WHERE id = auth.uid() AND role = 'admin'
+        )
+      );
+  END IF;
 
-CREATE POLICY "Admin users can update stock metadata"
-  ON public.stock_metadata
-  FOR UPDATE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  -- Create UPDATE policy if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'stock_metadata'
+    AND policyname = 'Admin users can update stock metadata'
+  ) THEN
+    CREATE POLICY "Admin users can update stock metadata"
+      ON public.stock_metadata
+      FOR UPDATE
+      TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.profiles
+          WHERE id = auth.uid() AND role = 'admin'
+        )
+      );
+  END IF;
 
-CREATE POLICY "Admin users can delete stock metadata"
-  ON public.stock_metadata
-  FOR DELETE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+  -- Create DELETE policy if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'stock_metadata'
+    AND policyname = 'Admin users can delete stock metadata'
+  ) THEN
+    CREATE POLICY "Admin users can delete stock metadata"
+      ON public.stock_metadata
+      FOR DELETE
+      TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1 FROM public.profiles
+          WHERE id = auth.uid() AND role = 'admin'
+        )
+      );
+  END IF;
+END $$;
