@@ -44,9 +44,15 @@ class SupabaseUpdater:
         Args:
             symbols: List of NSE stock symbols to update
         """
-        print(f"Updating data for {len(symbols)} stocks...")
+        print(f"\n{'='*60}")
+        print(f"📊 Updating data for {len(symbols)} stocks...")
+        print(f"{'='*60}\n")
 
         quotes = self.nse_fetcher.get_multiple_quotes(symbols)
+
+        updated_count = 0
+        failed_count = 0
+        skipped_count = 0
 
         for symbol, data in quotes.items():
             if data:
@@ -65,9 +71,25 @@ class SupabaseUpdater:
                         'raw_data': data.get('raw_data')
                     }, on_conflict='symbol').execute()
 
-                    print(f"✓ Updated {symbol}")
+                    price = data.get('current_price', 0)
+                    change = data.get('change_percent', 0)
+                    company = data.get('company_name', symbol)
+                    print(f"✅ {symbol:12} | ₹{price:10.2f} | {change:+7.2f}% | {company[:30]}")
+                    updated_count += 1
                 except Exception as e:
-                    print(f"✗ Error updating {symbol}: {e}")
+                    print(f"❌ {symbol:12} | Error: {str(e)[:50]}")
+                    failed_count += 1
+            else:
+                print(f"⚠️  {symbol:12} | No data returned")
+                skipped_count += 1
+
+        print(f"\n{'='*60}")
+        print(f"📈 Update Summary:")
+        print(f"   ✅ Successfully updated: {updated_count}")
+        print(f"   ❌ Failed: {failed_count}")
+        print(f"   ⚠️  Skipped (no data): {skipped_count}")
+        print(f"   📊 Total processed: {len(symbols)}")
+        print(f"{'='*60}\n")
 
     def update_mutual_fund_data(self, scheme_codes: List[str]) -> None:
         """
