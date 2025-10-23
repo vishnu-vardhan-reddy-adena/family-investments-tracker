@@ -107,15 +107,24 @@ export default async function DashboardPage() {
       investmentGroups[type] = { investments: [], totalValue: 0, holdings: 0 };
     }
     investmentGroups[type].investments.push(inv);
-    investmentGroups[type].totalValue += parseFloat(inv.current_value || inv.total_invested || 0);
+    
+    // Calculate current value and total invested from quantity and prices
+    const currentValue = parseFloat(inv.quantity || 0) * parseFloat(inv.current_price || inv.purchase_price || 0);
+    const totalInvested = parseFloat(inv.quantity || 0) * parseFloat(inv.purchase_price || 0);
+    
+    investmentGroups[type].totalValue += currentValue || 0;
     investmentGroups[type].holdings += 1;
+    
+    // Store calculated values on the investment object for later use
+    inv.calculated_current_value = currentValue;
+    inv.calculated_total_invested = totalInvested;
   });
 
   // Create investment cards with real data
   const investments = Object.entries(investmentGroups).map(([type, data]) => {
     const config = investmentConfig[type] || investmentConfig.other;
     const totalInvested = data.investments.reduce(
-      (sum, inv) => sum + parseFloat(inv.total_invested || 0),
+      (sum, inv) => sum + (inv.calculated_total_invested || 0),
       0
     );
     const change = data.totalValue - totalInvested;
@@ -134,7 +143,10 @@ export default async function DashboardPage() {
 
   const totalValue = investments.reduce((sum, inv) => sum + inv.totalValue, 0);
   const totalChange = investments.reduce((sum, inv) => sum + inv.change, 0);
-  const totalChangePercent = ((totalChange / (totalValue - totalChange)) * 100).toFixed(2);
+  const totalInvestedAmount = totalValue - totalChange;
+  const totalChangePercent = totalInvestedAmount > 0 
+    ? ((totalChange / totalInvestedAmount) * 100).toFixed(2)
+    : '0.00';
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] dark:bg-[#0F1419]">
