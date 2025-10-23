@@ -2,13 +2,21 @@
 
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
+  IconButton,
   InputAdornment,
   MenuItem,
   Paper,
@@ -23,28 +31,53 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { AddTransactionModal } from './AddTransactionModal';
 
 export interface Transaction {
   id: number;
+  dbId?: number; // Actual database ID
+  investment_id?: string; // For editing
   date: string;
   company: string;
-  action: 'BUY' | 'SELL' | 'DIVIDEND' | 'BONUS';
+  action: 'BUY' | 'SELL' | 'DIVIDEND' | 'BONUS' | 'SPLIT' | 'SPIN-OFF' | 'INTEREST' | 'MATURITY';
   splitBonus: number;
   units: number;
   price: number;
   totalCost: number;
   realisedPL: number;
-  type: 'STOCK' | 'MUTUAL_FUND' | 'ETF' | 'FD' | 'NPS' | 'EPF';
+  type:
+    | 'STOCK'
+    | 'MUTUAL_FUND'
+    | 'ETF'
+    | 'FD'
+    | 'NPS'
+    | 'EPF'
+    | 'REAL_ESTATE'
+    | 'GOLD'
+    | 'BOND'
+    | 'OTHER';
+  transaction_type?: string; // For editing (buy, sell, dividend, bonus, etc.)
+  transaction_date?: string; // For editing
+  notes?: string; // For editing
+  charges_a?: number; // For editing
+  charges_b?: number; // For editing
+  quantity?: number; // For editing (alias of units)
 }
 
 interface TransactionsTableProps {
   transactions: Transaction[];
+  onTransactionUpdate?: () => void;
+  onTransactionDelete?: (id: number) => void;
 }
 
 type SortField = 'date' | 'company' | 'price' | 'totalCost' | 'realisedPL';
 type SortOrder = 'asc' | 'desc';
 
-export function TransactionsTable({ transactions }: TransactionsTableProps) {
+export function TransactionsTable({
+  transactions,
+  onTransactionUpdate,
+  onTransactionDelete,
+}: TransactionsTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('All');
   const [filterAction, setFilterAction] = useState<string>('All');
@@ -52,6 +85,10 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Filter transactions
   const filteredTransactions = transactions.filter((transaction) => {
@@ -104,6 +141,47 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
     }
   };
 
+  const handleEdit = (transaction: Transaction) => {
+    setEditTransaction(transaction);
+  };
+
+  const handleDeleteClick = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/transactions/${transactionToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transaction');
+      }
+
+      // Call callbacks to update UI without page reload
+      onTransactionDelete?.(transactionToDelete.id);
+      onTransactionUpdate?.();
+
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      alert('Failed to delete transaction');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  };
+
   const getActionColor = (action: string) => {
     switch (action) {
       case 'BUY':
@@ -111,9 +189,15 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
       case 'SELL':
         return '#FF6B6B'; // Coral Pink
       case 'DIVIDEND':
+      case 'INTEREST':
         return '#FFD93D'; // Sunny Yellow
       case 'BONUS':
+      case 'SPLIT':
         return '#A78BFA'; // Violet
+      case 'MATURITY':
+        return '#34D399'; // Green
+      case 'SPIN-OFF':
+        return '#F59E0B'; // Amber
       default:
         return '#4D79FF'; // Electric Blue
     }
@@ -128,11 +212,21 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
       case 'ETF':
         return '#FF6B6B';
       case 'FD':
+      case 'FIXED_DEPOSIT':
         return '#FFD93D';
       case 'NPS':
         return '#A78BFA';
       case 'EPF':
+      case 'EPFO':
         return '#34D399';
+      case 'REAL_ESTATE':
+        return '#F59E0B';
+      case 'GOLD':
+        return '#FBBF24';
+      case 'BOND':
+        return '#8B5CF6';
+      case 'OTHER':
+        return '#6B7280';
       default:
         return '#4D79FF';
     }
@@ -212,8 +306,14 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               <MenuItem value="MUTUAL_FUND">Mutual Fund</MenuItem>
               <MenuItem value="ETF">ETF</MenuItem>
               <MenuItem value="FD">FD</MenuItem>
+              <MenuItem value="FIXED_DEPOSIT">Fixed Deposit</MenuItem>
               <MenuItem value="NPS">NPS</MenuItem>
               <MenuItem value="EPF">EPF</MenuItem>
+              <MenuItem value="EPFO">EPFO</MenuItem>
+              <MenuItem value="REAL_ESTATE">Real Estate</MenuItem>
+              <MenuItem value="GOLD">Gold</MenuItem>
+              <MenuItem value="BOND">Bond</MenuItem>
+              <MenuItem value="OTHER">Other</MenuItem>
             </Select>
           </FormControl>
 
@@ -238,6 +338,10 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               <MenuItem value="SELL">Sell</MenuItem>
               <MenuItem value="DIVIDEND">Dividend</MenuItem>
               <MenuItem value="BONUS">Bonus</MenuItem>
+              <MenuItem value="SPLIT">Split</MenuItem>
+              <MenuItem value="SPIN-OFF">Spin-off</MenuItem>
+              <MenuItem value="INTEREST">Interest</MenuItem>
+              <MenuItem value="MATURITY">Maturity</MenuItem>
             </Select>
           </FormControl>
 
@@ -449,12 +553,13 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               </TableCell>
               <TableCell align="center">Type</TableCell>
               <TableCell align="center">ID</TableCell>
+              <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedTransactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} align="center" sx={{ py: 8 }}>
+                <TableCell colSpan={11} align="center" sx={{ py: 8 }}>
                   <Typography variant="h6" color="text.secondary">
                     No transactions found
                   </Typography>
@@ -541,6 +646,32 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                   >
                     {transaction.id}
                   </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEdit(transaction)}
+                        sx={{
+                          color: '#4D79FF',
+                          '&:hover': { bgcolor: '#4D79FF15' },
+                        }}
+                        title="Edit transaction"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteClick(transaction)}
+                        sx={{
+                          color: '#FF6B6B',
+                          '&:hover': { bgcolor: '#FF6B6B15' },
+                        }}
+                        title="Delete transaction"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -559,6 +690,83 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
           </Typography>
         )}
       </Box>
+
+      {/* Edit Transaction Modal */}
+      {editTransaction && (
+        <AddTransactionModal
+          open={!!editTransaction}
+          onClose={() => setEditTransaction(null)}
+          onSuccess={() => {
+            setEditTransaction(null);
+            onTransactionUpdate?.();
+          }}
+          editTransaction={editTransaction}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%)',
+            color: 'white',
+            fontWeight: 700,
+          }}
+        >
+          Delete Transaction
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <DialogContentText>
+            Are you sure you want to delete this transaction?
+            <br />
+            <br />
+            <strong>{transactionToDelete?.company}</strong>
+            <br />
+            {transactionToDelete?.action} - {transactionToDelete?.units} units @ ₹
+            {transactionToDelete?.price}
+            <br />
+            <br />
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={handleDeleteCancel}
+            disabled={deleting}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            disabled={deleting}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              px: 3,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #EF5B5B 0%, #EFC92D 100%)',
+              },
+            }}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

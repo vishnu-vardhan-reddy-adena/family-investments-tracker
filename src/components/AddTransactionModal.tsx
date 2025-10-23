@@ -27,6 +27,7 @@ interface Investment {
 }
 
 interface TransactionFormData {
+  investment_type: string;
   investment_id: string;
   transaction_type: string;
   quantity: string;
@@ -51,8 +52,10 @@ export function AddTransactionModal({
   editTransaction,
 }: AddTransactionModalProps) {
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [filteredInvestments, setFilteredInvestments] = useState<Investment[]>([]);
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
   const [formData, setFormData] = useState<TransactionFormData>({
+    investment_type: '',
     investment_id: '',
     transaction_type: 'buy',
     quantity: '',
@@ -94,20 +97,53 @@ export function AddTransactionModal({
     }
   }, [open]);
 
+  // Filter investments when investment type changes
+  useEffect(() => {
+    if (formData.investment_type) {
+      const filtered = investments.filter(
+        (inv) => inv.investment_type === formData.investment_type
+      );
+      setFilteredInvestments(filtered);
+    } else {
+      setFilteredInvestments(investments);
+    }
+  }, [formData.investment_type, investments]);
+
   // Load edit data
   useEffect(() => {
     if (editTransaction) {
       setFormData({
+        investment_type: editTransaction.investment_type || '',
         investment_id: editTransaction.investment_id || '',
-        transaction_type: editTransaction.transaction_type?.toLowerCase() || 'buy',
-        quantity: editTransaction.quantity?.toString() || '',
+        transaction_type:
+          editTransaction.transaction_type?.toLowerCase() ||
+          editTransaction.action?.toLowerCase() ||
+          'buy',
+        quantity: (editTransaction.quantity || editTransaction.units)?.toString() || '',
         price: editTransaction.price?.toString() || '',
         charges_a: editTransaction.charges_a?.toString() || '0',
         charges_b: editTransaction.charges_b?.toString() || '0',
         transaction_date:
-          editTransaction.transaction_date || new Date().toISOString().split('T')[0],
+          editTransaction.transaction_date ||
+          editTransaction.date ||
+          new Date().toISOString().split('T')[0],
         notes: editTransaction.notes || '',
       });
+
+      // Fetch investments to find and set the selected investment
+      fetch('/api/investments/list')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.investments) {
+            const investment = data.investments.find(
+              (inv: Investment) => inv.id === editTransaction.investment_id
+            );
+            if (investment) {
+              setSelectedInvestment(investment);
+            }
+          }
+        })
+        .catch((err) => console.error('Error loading investment for edit:', err));
     }
   }, [editTransaction]);
 
@@ -142,6 +178,8 @@ export function AddTransactionModal({
         quantity,
         price,
         total_amount,
+        charges_a,
+        charges_b,
         transaction_date: formData.transaction_date,
         notes: formData.notes,
       };
@@ -176,6 +214,7 @@ export function AddTransactionModal({
 
   const handleClose = () => {
     setFormData({
+      investment_type: '',
       investment_id: '',
       transaction_type: 'buy',
       quantity: '',
@@ -242,6 +281,39 @@ export function AddTransactionModal({
       <DialogContent sx={{ mt: 3 }}>
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Investment Type Selection */}
+            <FormControl fullWidth required>
+              <InputLabel>Investment Type</InputLabel>
+              <Select
+                value={formData.investment_type}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    investment_type: e.target.value,
+                    investment_id: '', // Reset investment when type changes
+                  });
+                  setSelectedInvestment(null); // Clear selected investment
+                }}
+                label="Investment Type"
+                disabled={!!editTransaction}
+                sx={textFieldStyles}
+              >
+                <MenuItem value="">
+                  <em>Select investment type first</em>
+                </MenuItem>
+                <MenuItem value="stock">Stock</MenuItem>
+                <MenuItem value="mutual_fund">Mutual Fund</MenuItem>
+                <MenuItem value="etf">ETF</MenuItem>
+                <MenuItem value="fixed_deposit">Fixed Deposit</MenuItem>
+                <MenuItem value="nps">NPS</MenuItem>
+                <MenuItem value="epfo">EPF/PF</MenuItem>
+                <MenuItem value="real_estate">Real Estate</MenuItem>
+                <MenuItem value="gold">Gold</MenuItem>
+                <MenuItem value="bond">Bond</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
+              </Select>
+            </FormControl>
+
             {/* Investment Selection */}
             <Autocomplete
               value={selectedInvestment}
@@ -249,12 +321,28 @@ export function AddTransactionModal({
                 setSelectedInvestment(newValue);
                 setFormData({ ...formData, investment_id: newValue?.id || '' });
               }}
-              options={investments}
-              getOptionLabel={(option) => `${option.company_name} (${option.symbol || 'N/A'})`}
+              options={filteredInvestments}
+              disabled={!formData.investment_type || !!editTransaction}
+              getOptionLabel={(option) => {
+                const symbol = option.symbol ? ` (${option.symbol})` : '';
+                return `${option.company_name}${symbol}`;
+              }}
+              groupBy={(option) => option.investment_type?.toUpperCase() || 'OTHER'}
               renderInput={(params) => (
-                <TextField {...params} label="Company" required sx={textFieldStyles} />
+                <TextField
+                  {...params}
+                  label="Select Investment"
+                  required
+                  sx={textFieldStyles}
+                  helperText={
+                    !formData.investment_type
+                      ? 'Please select investment type first'
+                      : filteredInvestments.length === 0
+                        ? `No ${formData.investment_type} investments found. Add one first.`
+                        : `${filteredInvestments.length} ${formData.investment_type} investment(s) available`
+                  }
+                />
               )}
-              disabled={!!editTransaction}
             />
 
             {/* Transaction Date */}
@@ -279,16 +367,44 @@ export function AddTransactionModal({
               >
                 <MenuItem value="buy">BUY</MenuItem>
                 <MenuItem value="sell">SELL</MenuItem>
-                <MenuItem value="split">SPLIT</MenuItem>
-                <MenuItem value="bonus">BONUS</MenuItem>
-                <MenuItem value="dividend">DIVIDEND</MenuItem>
-                <MenuItem value="spin-off">SPIN-OFF</MenuItem>
+
+                {/* Stock/ETF/MF specific actions */}
+                {(selectedInvestment?.investment_type === 'stock' ||
+                  selectedInvestment?.investment_type === 'etf') && (
+                  <>
+                    <MenuItem value="split">SPLIT</MenuItem>
+                    <MenuItem value="bonus">BONUS</MenuItem>
+                    <MenuItem value="dividend">DIVIDEND</MenuItem>
+                    <MenuItem value="spin-off">SPIN-OFF</MenuItem>
+                  </>
+                )}
+
+                {/* Mutual Fund specific */}
+                {selectedInvestment?.investment_type === 'mutual_fund' && (
+                  <MenuItem value="dividend">DIVIDEND</MenuItem>
+                )}
+
+                {/* FD/NPS/EPFO specific actions */}
+                {(selectedInvestment?.investment_type === 'fixed_deposit' ||
+                  selectedInvestment?.investment_type === 'nps' ||
+                  selectedInvestment?.investment_type === 'epfo') && (
+                  <>
+                    <MenuItem value="interest">INTEREST</MenuItem>
+                    <MenuItem value="maturity">MATURITY</MenuItem>
+                  </>
+                )}
               </Select>
             </FormControl>
 
-            {/* Units */}
+            {/* Units/Quantity */}
             <TextField
-              label="Units"
+              label={
+                selectedInvestment?.investment_type === 'stock' ||
+                selectedInvestment?.investment_type === 'etf' ||
+                selectedInvestment?.investment_type === 'mutual_fund'
+                  ? 'Units'
+                  : 'Quantity'
+              }
               type="number"
               value={formData.quantity}
               onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
@@ -299,7 +415,13 @@ export function AddTransactionModal({
 
             {/* Price */}
             <TextField
-              label="Price"
+              label={
+                selectedInvestment?.investment_type === 'mutual_fund'
+                  ? 'NAV (Net Asset Value)'
+                  : selectedInvestment?.investment_type === 'fixed_deposit'
+                    ? 'Amount'
+                    : 'Price per Unit'
+              }
               type="number"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
@@ -338,10 +460,14 @@ export function AddTransactionModal({
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Prev. Units
+                  Current Holding
                 </Typography>
                 <Typography variant="body2" fontWeight={600}>
-                  {calculatePrevUnits()}
+                  {calculatePrevUnits()}{' '}
+                  {selectedInvestment?.investment_type === 'stock' ||
+                  selectedInvestment?.investment_type === 'etf'
+                    ? 'units'
+                    : 'qty'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>

@@ -5,12 +5,16 @@ import { Button } from '@mui/material';
 import { useState } from 'react';
 import { AddInvestmentModal } from './AddInvestmentModal';
 
-export function AddInvestmentButton() {
+interface AddInvestmentButtonProps {
+  onSuccess?: () => void;
+}
+
+export function AddInvestmentButton({ onSuccess }: AddInvestmentButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleSuccess = () => {
-    // Refresh the page to show new investment
-    window.location.reload();
+    setModalOpen(false);
+    onSuccess?.();
   };
 
   return (

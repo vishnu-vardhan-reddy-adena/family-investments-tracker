@@ -5,12 +5,16 @@ import { Button } from '@mui/material';
 import { useState } from 'react';
 import { AddTransactionModal } from './AddTransactionModal';
 
-export function AddTransactionButton() {
+interface AddTransactionButtonProps {
+  onSuccess?: () => void;
+}
+
+export function AddTransactionButton({ onSuccess }: AddTransactionButtonProps) {
   const [open, setOpen] = useState(false);
 
   const handleSuccess = () => {
-    // Reload the page to show updated transactions
-    window.location.reload();
+    setOpen(false);
+    onSuccess?.();
   };
 
   return (

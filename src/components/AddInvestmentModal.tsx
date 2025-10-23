@@ -1,17 +1,27 @@
 'use client';
 
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
+import PieChartIcon from '@mui/icons-material/PieChart';
+import SavingsIcon from '@mui/icons-material/Savings';
 import SearchIcon from '@mui/icons-material/Search';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import WorkIcon from '@mui/icons-material/Work';
 import {
   Alert,
   Autocomplete,
   Box,
   Button,
+  Card,
+  CardActionArea,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
+  Grid,
   InputAdornment,
   InputLabel,
   MenuItem,
@@ -61,6 +71,7 @@ interface FormData {
 }
 
 export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentModalProps) {
+  const [step, setStep] = useState<'select-type' | 'fill-form'>('select-type');
   const [formData, setFormData] = useState<FormData>({
     investmentType: 'stock',
     symbol: '',
@@ -106,16 +117,66 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
   };
 
   const investmentTypes = [
-    { value: 'stock', label: 'Stock', icon: '📈' },
-    { value: 'mutual_fund', label: 'Mutual Fund', icon: '💼' },
-    { value: 'etf', label: 'ETF', icon: '📊' },
-    { value: 'fixed_deposit', label: 'Fixed Deposit', icon: '🏦' },
-    { value: 'nps', label: 'NPS', icon: '🛡️' },
-    { value: 'epfo', label: 'EPF/PF', icon: '💰' },
-    { value: 'real_estate', label: 'Real Estate', icon: '🏠' },
-    { value: 'gold', label: 'Gold', icon: '🪙' },
-    { value: 'bond', label: 'Bond', icon: '📜' },
-    { value: 'other', label: 'Other', icon: '📝' },
+    {
+      value: 'stock' as InvestmentType,
+      label: 'Stock',
+      icon: <ShowChartIcon sx={{ fontSize: 28 }} />,
+      color: '#4D79FF',
+    },
+    {
+      value: 'mutual_fund' as InvestmentType,
+      label: 'Mutual Fund',
+      icon: <PieChartIcon sx={{ fontSize: 28 }} />,
+      color: '#1DD1A1',
+    },
+    {
+      value: 'etf' as InvestmentType,
+      label: 'ETF',
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
+      color: '#FF6B6B',
+    },
+    {
+      value: 'fixed_deposit' as InvestmentType,
+      label: 'Fixed Deposit',
+      icon: <AccountBalanceIcon sx={{ fontSize: 28 }} />,
+      color: '#FFD93D',
+    },
+    {
+      value: 'nps' as InvestmentType,
+      label: 'NPS',
+      icon: <SavingsIcon sx={{ fontSize: 28 }} />,
+      color: '#A78BFA',
+    },
+    {
+      value: 'epfo' as InvestmentType,
+      label: 'EPF/PF',
+      icon: <WorkIcon sx={{ fontSize: 28 }} />,
+      color: '#34D399',
+    },
+    {
+      value: 'real_estate' as InvestmentType,
+      label: 'Real Estate',
+      icon: <AccountBalanceIcon sx={{ fontSize: 28 }} />,
+      color: '#F59E0B',
+    },
+    {
+      value: 'gold' as InvestmentType,
+      label: 'Gold',
+      icon: <SavingsIcon sx={{ fontSize: 28 }} />,
+      color: '#FBBF24',
+    },
+    {
+      value: 'bond' as InvestmentType,
+      label: 'Bond',
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />,
+      color: '#8B5CF6',
+    },
+    {
+      value: 'other' as InvestmentType,
+      label: 'Other',
+      icon: <PieChartIcon sx={{ fontSize: 28 }} />,
+      color: '#6B7280',
+    },
   ];
 
   const propertyTypes = ['Residential', 'Commercial', 'Land', 'Agricultural'];
@@ -132,22 +193,17 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
     }
 
     try {
-      // Mock search results - replace with actual API call
-      const mockResults = [
-        { symbol: 'RELIANCE', name: 'Reliance Industries Ltd', price: 2450.5 },
-        { symbol: 'TCS', name: 'Tata Consultancy Services Ltd', price: 3580.75 },
-        { symbol: 'INFY', name: 'Infosys Ltd', price: 1420.3 },
-        { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd', price: 1650.0 },
-        { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd', price: 985.25 },
-      ].filter(
-        (stock) =>
-          stock.symbol.toLowerCase().includes(query.toLowerCase()) ||
-          stock.name.toLowerCase().includes(query.toLowerCase())
-      );
-
-      setSearchResults(mockResults);
+      const response = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+      } else {
+        console.error('Search failed:', response.statusText);
+        setSearchResults([]);
+      }
     } catch (err) {
       console.error('Search error:', err);
+      setSearchResults([]);
     }
   };
 
@@ -249,6 +305,7 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
   };
 
   const handleClose = () => {
+    setStep('select-type');
     setFormData({
       investmentType: 'stock',
       symbol: '',
@@ -272,6 +329,16 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
     onClose();
   };
 
+  const handleTypeSelect = (type: InvestmentType) => {
+    setFormData({ ...formData, investmentType: type });
+    setStep('fill-form');
+  };
+
+  const handleBackToTypeSelection = () => {
+    setStep('select-type');
+    setError('');
+  };
+
   const renderFields = () => {
     const { investmentType } = formData;
 
@@ -291,11 +358,17 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
               handleSearchStock(newValue);
             }}
             onChange={(e, newValue: any) => handleStockSelect(newValue)}
+            noOptionsText={
+              searchQuery.length < 2
+                ? 'Type at least 2 characters to search'
+                : 'No stocks found. You can still enter manually below.'
+            }
             renderInput={(params) => (
               <TextField
                 {...params}
                 label={`Search ${investmentType === 'stock' ? 'Stock' : investmentType === 'etf' ? 'ETF' : 'Mutual Fund'}`}
                 placeholder="Type symbol or company name..."
+                helperText="Search for stocks or enter details manually below"
                 sx={textFieldStyles}
                 InputProps={{
                   ...params.InputProps,
@@ -606,7 +679,21 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
           justifyContent: 'space-between',
         }}
       >
-        Add New Investment
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {step === 'fill-form' && (
+            <Button
+              onClick={handleBackToTypeSelection}
+              sx={{
+                minWidth: 'auto',
+                color: 'white',
+                '&:hover': { background: 'rgba(255, 255, 255, 0.1)' },
+              }}
+            >
+              <ArrowBackIcon />
+            </Button>
+          )}
+          <span>{step === 'select-type' ? 'Select Investment Type' : 'Add New Investment'}</span>
+        </Box>
         <Button
           onClick={handleClose}
           sx={{
@@ -620,111 +707,179 @@ export function AddInvestmentModal({ open, onClose, onSuccess }: AddInvestmentMo
       </DialogTitle>
 
       <DialogContent sx={{ mt: 3 }}>
-        <Box className="flex flex-col gap-4">
-          {success && (
-            <Alert severity="success" sx={{ borderRadius: '12px' }}>
-              <Typography variant="body2" fontWeight={600}>
-                ✅ Investment added successfully!
-              </Typography>
-            </Alert>
-          )}
-
-          {error && (
-            <Alert severity="error" sx={{ borderRadius: '12px' }}>
-              <Typography variant="body2" fontWeight={600} className="mb-1">
-                Error adding investment:
-              </Typography>
-              <Typography variant="body2">{error}</Typography>
-            </Alert>
-          )}
-
-          <FormControl fullWidth>
-            <InputLabel>Investment Type *</InputLabel>
-            <Select
-              value={formData.investmentType}
-              onChange={(e) =>
-                handleInputChange('investmentType', e.target.value as InvestmentType)
-              }
-              label="Investment Type *"
-            >
-              {investmentTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  <Box className="flex items-center gap-2">
-                    <span>{type.icon}</span>
-                    <span>{type.label}</span>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {renderFields()}
-
-          <TextField
-            label="Notes (Optional)"
-            value={formData.notes}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
-            placeholder="Add any additional notes..."
-            multiline
-            rows={3}
-            fullWidth
-            sx={textFieldStyles}
-          />
-
-          <Box
-            sx={{
-              background: 'linear-gradient(135deg, #4D79FF15 0%, #1DD1A115 100%)',
-              border: '2px solid #4D79FF40',
-              borderRadius: '16px',
-              padding: 2,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              💡 <strong>Tip:</strong> After adding your investment, we'll automatically track its
-              real-time performance using live market data!
+        {step === 'select-type' ? (
+          // Step 1: Type Selection Screen
+          <Box sx={{ py: 2 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4, textAlign: 'center' }}>
+              Choose the type of investment you want to add
             </Typography>
+
+            <Grid container spacing={2}>
+              {investmentTypes.map((type) => (
+                <Grid size={{ xs: 6, sm: 4 }} key={type.value}>
+                  <Card
+                    sx={{
+                      borderRadius: '16px',
+                      border: '2px solid transparent',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: type.color,
+                        transform: 'translateY(-4px)',
+                        boxShadow: `0 8px 24px ${type.color}40`,
+                      },
+                    }}
+                  >
+                    <CardActionArea
+                      onClick={() => handleTypeSelect(type.value)}
+                      sx={{
+                        p: 3,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2,
+                        minHeight: '140px',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: '50%',
+                          background: `${type.color}20`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: type.color,
+                        }}
+                      >
+                        {type.icon}
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        fontWeight={600}
+                        textAlign="center"
+                        sx={{ color: 'text.primary' }}
+                      >
+                        {type.label}
+                      </Typography>
+                    </CardActionArea>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
           </Box>
-        </Box>
+        ) : (
+          // Step 2: Form based on selected type
+          <Box className="flex flex-col gap-4">
+            {success && (
+              <Alert severity="success" sx={{ borderRadius: '12px' }}>
+                <Typography variant="body2" fontWeight={600}>
+                  ✅ Investment added successfully!
+                </Typography>
+              </Alert>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                <Typography variant="body2" fontWeight={600} className="mb-1">
+                  Error adding investment:
+                </Typography>
+                <Typography variant="body2">{error}</Typography>
+              </Alert>
+            )}
+
+            <FormControl fullWidth>
+              <InputLabel>Investment Type *</InputLabel>
+              <Select
+                value={formData.investmentType}
+                onChange={(e) =>
+                  handleInputChange('investmentType', e.target.value as InvestmentType)
+                }
+                label="Investment Type *"
+              >
+                {investmentTypes.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    <Box className="flex items-center gap-2">
+                      <span>{type.icon}</span>
+                      <span>{type.label}</span>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {renderFields()}
+
+            <TextField
+              label="Notes (Optional)"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Add any additional notes..."
+              multiline
+              rows={3}
+              fullWidth
+              sx={textFieldStyles}
+            />
+
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #4D79FF15 0%, #1DD1A115 100%)',
+                border: '2px solid #4D79FF40',
+                borderRadius: '16px',
+                padding: 2,
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                💡 <strong>Tip:</strong> After adding your investment, we'll automatically track its
+                real-time performance using live market data!
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ p: 3, gap: 2 }}>
-        <Button
-          onClick={handleClose}
-          variant="outlined"
-          disabled={loading}
-          sx={{
-            borderRadius: '16px',
-            borderColor: '#FF6B6B',
-            color: '#FF6B6B',
-            px: 4,
-            py: 1.5,
-            '&:hover': {
-              borderColor: '#FF6B6B',
-              background: '#FF6B6B15',
-            },
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={loading}
-          sx={{
-            background: 'linear-gradient(90deg, #4D79FF 0%, #1DD1A1 100%)',
-            borderRadius: '16px',
-            px: 4,
-            py: 1.5,
-            fontWeight: 600,
-            boxShadow: '0 4px 20px rgba(77, 121, 255, 0.3)',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #2656FF 0%, #17B890 100%)',
-              boxShadow: '0 6px 25px rgba(77, 121, 255, 0.4)',
-            },
-          }}
-        >
-          {loading ? 'Adding...' : 'Add Investment'}
-        </Button>
+        {step === 'fill-form' && (
+          <>
+            <Button
+              onClick={handleClose}
+              variant="outlined"
+              disabled={loading}
+              sx={{
+                borderRadius: '16px',
+                borderColor: '#FF6B6B',
+                color: '#FF6B6B',
+                px: 4,
+                py: 1.5,
+                '&:hover': {
+                  borderColor: '#FF6B6B',
+                  background: '#FF6B6B15',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              disabled={loading}
+              sx={{
+                background: 'linear-gradient(90deg, #4D79FF 0%, #1DD1A1 100%)',
+                borderRadius: '16px',
+                px: 4,
+                py: 1.5,
+                fontWeight: 600,
+                boxShadow: '0 4px 20px rgba(77, 121, 255, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #2656FF 0%, #17B890 100%)',
+                  boxShadow: '0 6px 25px rgba(77, 121, 255, 0.4)',
+                },
+              }}
+            >
+              {loading ? 'Adding...' : 'Add Investment'}
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   );
