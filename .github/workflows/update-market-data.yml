@@ -1,0 +1,42 @@
+name: Update Market Data
+
+on:
+  schedule:
+    # Runs at 9:00,10:00,...16:00 IST (UTC+5:30) -> 03:30,04:30,...10:30 UTC
+    - cron: '30 3-10 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  update-market-data:
+    name: Run market data updater
+    runs-on: ubuntu-latest
+    concurrency:
+      group: update-market-data
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: scripts
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run market data updater (single-run)
+        working-directory: scripts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Optional secrets (only needed if your fetchers require them)
+          NSE_API_KEY: ${{ secrets.NSE_API_KEY }}
+          AMFI_API_KEY: ${{ secrets.AMFI_API_KEY }}
+        run: |
+          echo "Running update_market_data.py (single run)"
+          python update_market_data.py
