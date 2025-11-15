@@ -73,8 +73,7 @@ export default async function StocksMetadataPage() {
     email: user.email ?? undefined,
     full_name: (profile as any)?.full_name ?? undefined,
     avatar_url: (profile as any)?.avatar_url ?? undefined,
-    role:
-      profile?.role === 'admin' ? 'admin' : profile?.role === 'user' ? 'user' : undefined,
+    role: profile?.role === 'admin' ? 'admin' : profile?.role === 'user' ? 'user' : undefined,
   };
 
   return (
