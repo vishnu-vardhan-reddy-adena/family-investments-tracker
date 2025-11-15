@@ -2,9 +2,9 @@
 
 import { AddInvestmentButton } from '@/components/AddInvestmentButton';
 import { AddTransactionButton } from '@/components/AddTransactionButton';
+import ImportTransactionsButton from '@/components/ImportTransactionsButton';
 import { TransactionsTable, type Transaction } from '@/components/TransactionsTable';
 import DownloadIcon from '@mui/icons-material/Download';
-import UploadIcon from '@mui/icons-material/Upload';
 import { Box, Button, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
@@ -126,25 +126,7 @@ export function TransactionsPageClient({ initialTransactions }: TransactionsPage
         <Box className="flex items-center gap-3">
           <AddInvestmentButton onSuccess={handleTransactionUpdate} />
           <AddTransactionButton onSuccess={handleTransactionUpdate} />
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            sx={{
-              borderRadius: '16px',
-              borderColor: '#4D79FF',
-              color: '#4D79FF',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              '&:hover': {
-                borderColor: '#4D79FF',
-                background: '#4D79FF15',
-              },
-            }}
-          >
-            Import CSV
-          </Button>
+          <ImportTransactionsButton />
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}

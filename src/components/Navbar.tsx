@@ -22,7 +22,7 @@ export function Navbar({ user }: NavbarProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { name: 'Portfolios', href: '/portfolios', icon: '💼' },
+    { name: 'Portfolio', href: '/portfolio', icon: '💼' },
     { name: 'Transactions', href: '/transactions', icon: '💸' },
     { name: 'Analytics', href: '/analytics', icon: '📈' },
   ];

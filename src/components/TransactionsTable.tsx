@@ -9,6 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
@@ -89,6 +90,11 @@ export function TransactionsTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Filter transactions
   const filteredTransactions = transactions.filter((transaction) => {
@@ -181,6 +187,63 @@ export function TransactionsTable({
     setDeleteDialogOpen(false);
     setTransactionToDelete(null);
   };
+
+  // Bulk selection handlers
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const allIds = new Set(sortedTransactions.map((t) => t.id));
+      setSelectedIds(allIds);
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    setBulkDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedIds).map((id) =>
+        fetch(`/api/transactions/${id}`, {
+          method: 'DELETE',
+        })
+      );
+
+      await Promise.all(deletePromises);
+
+      // Clear selection and refresh
+      setSelectedIds(new Set());
+      setBulkDeleteDialogOpen(false);
+      onTransactionUpdate?.();
+    } catch (error) {
+      console.error('Error deleting transactions:', error);
+      alert('Failed to delete some transactions');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleBulkDeleteCancel = () => {
+    setBulkDeleteDialogOpen(false);
+  };
+
+  const isSelected = (id: number) => selectedIds.has(id);
+  const isAllSelected =
+    sortedTransactions.length > 0 && selectedIds.size === sortedTransactions.length;
+  const isIndeterminate = selectedIds.size > 0 && selectedIds.size < sortedTransactions.length;
 
   const getActionColor = (action: string) => {
     switch (action) {
@@ -449,6 +512,59 @@ export function TransactionsTable({
         </Box>
       </Box>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <Box
+          sx={{
+            mb: 2,
+            p: 2,
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #4D79FF15 0%, #FF6B6B15 100%)',
+            border: '2px solid #4D79FF40',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Typography variant="body1" sx={{ fontWeight: 600, color: '#4D79FF' }}>
+            {selectedIds.size} transaction{selectedIds.size > 1 ? 's' : ''} selected
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<DeleteIcon />}
+              onClick={handleBulkDeleteClick}
+              sx={{
+                borderRadius: '12px',
+                borderColor: '#FF6B6B',
+                color: '#FF6B6B',
+                '&:hover': {
+                  borderColor: '#FF6B6B',
+                  background: '#FF6B6B15',
+                },
+              }}
+            >
+              Delete Selected
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setSelectedIds(new Set())}
+              sx={{
+                borderRadius: '12px',
+                borderColor: '#A78BFA',
+                color: '#A78BFA',
+                '&:hover': {
+                  borderColor: '#A78BFA',
+                  background: '#A78BFA15',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      )}
+
       {/* Transactions Table */}
       <TableContainer
         component={Paper}
@@ -475,6 +591,18 @@ export function TransactionsTable({
                 },
               }}
             >
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={isIndeterminate}
+                  onChange={handleSelectAll}
+                  sx={{
+                    color: 'white',
+                    '&.Mui-checked': { color: 'white' },
+                    '&.MuiCheckbox-indeterminate': { color: 'white' },
+                  }}
+                />
+              </TableCell>
               <TableCell
                 sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
                 onClick={() => handleSort('date')}
@@ -559,7 +687,7 @@ export function TransactionsTable({
           <TableBody>
             {sortedTransactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} align="center" sx={{ py: 8 }}>
+                <TableCell colSpan={12} align="center" sx={{ py: 8 }}>
                   <Typography variant="h6" color="text.secondary">
                     No transactions found
                   </Typography>
@@ -578,11 +706,20 @@ export function TransactionsTable({
                     },
                     '&:hover': {
                       bgcolor: 'action.selected',
-                      cursor: 'pointer',
                     },
                     transition: 'all 0.2s ease',
+                    bgcolor: isSelected(transaction.id) ? 'action.selected' : 'inherit',
                   }}
                 >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected(transaction.id)}
+                      onChange={() => handleSelectOne(transaction.id)}
+                      sx={{
+                        '&.Mui-checked': { color: '#4D79FF' },
+                      }}
+                    />
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{formatDate(transaction.date)}</TableCell>
                   <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {transaction.company}
@@ -764,6 +901,65 @@ export function TransactionsTable({
             }}
           >
             {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog
+        open={bulkDeleteDialogOpen}
+        onClose={handleBulkDeleteCancel}
+        PaperProps={{
+          sx: {
+            borderRadius: '24px',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%)',
+            color: 'white',
+            fontWeight: 700,
+          }}
+        >
+          Delete Multiple Transactions
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <DialogContentText>
+            Are you sure you want to delete <strong>{selectedIds.size}</strong> selected transaction
+            {selectedIds.size > 1 ? 's' : ''}?
+            <br />
+            <br />
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={handleBulkDeleteCancel}
+            disabled={bulkDeleting}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleBulkDeleteConfirm}
+            disabled={bulkDeleting}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              textTransform: 'none',
+              px: 3,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #EF5B5B 0%, #EFC92D 100%)',
+              },
+            }}
+          >
+            {bulkDeleting ? 'Deleting...' : 'Delete All'}
           </Button>
         </DialogActions>
       </Dialog>

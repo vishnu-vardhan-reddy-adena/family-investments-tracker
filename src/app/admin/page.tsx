@@ -6,6 +6,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import PeopleIcon from '@mui/icons-material/People';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import { Box, Card, CardContent, Grid, Typography } from '@mui/material';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export default async function AdminDashboardPage() {
@@ -201,6 +202,53 @@ export default async function AdminDashboardPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Management Actions */}
+        <Box className="mb-8">
+          <Typography variant="h5" className="mb-4 font-['Space_Grotesk'] font-bold">
+            Management
+          </Typography>
+          <Grid container spacing={3} className="mb-8">
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Link href="/admin/stocks" style={{ textDecoration: 'none' }}>
+                <Card
+                  sx={{
+                    background: 'linear-gradient(135deg, #6C5CE715 0%, #A29BFE15 100%)',
+                    border: '2px solid #6C5CE740',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 24px rgba(108, 92, 231, 0.2)',
+                    },
+                  }}
+                >
+                  <CardContent>
+                    <Box className="flex items-center justify-between">
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" className="mb-1">
+                          Stock Metadata
+                        </Typography>
+                        <Typography
+                          variant="h5"
+                          className="font-['Space_Grotesk'] font-bold"
+                          sx={{ color: '#6C5CE7' }}
+                        >
+                          Manage Stocks
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          View & import stock data
+                        </Typography>
+                      </Box>
+                      <ShowChartIcon sx={{ fontSize: 48, color: '#6C5CE7', opacity: 0.3 }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
 
         {/* Recent Users */}
         <Box className="mb-8">
