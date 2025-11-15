@@ -53,11 +53,11 @@ if result.data:
             print(f"  Outstanding Shares: {row['outstanding_shares']:.2f} Cr")
         else:
             print(f"Symbol: {row['symbol']} - No outstanding shares data")
-    
+
     # Count stocks with outstanding_shares
     count_result = supabase.table('stock_metadata').select('symbol', count='exact').not_.is_('outstanding_shares', 'null').execute()
     total_result = supabase.table('stock_metadata').select('symbol', count='exact').execute()
-    
+
     print(f"\n📊 Statistics:")
     print(f"  Total stocks: {total_result.count}")
     print(f"  With outstanding shares: {count_result.count}")

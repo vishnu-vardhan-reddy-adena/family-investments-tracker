@@ -177,18 +177,25 @@ export default async function PortfolioPage() {
     const industryType = metadata?.industry_type || 'N/A';
     const industrySubgroup = metadata?.industry_sub_group || 'N/A';
     const macroEconomicIndicator = metadata?.macro_economic_indicator || 'N/A';
-    
+
     // Calculate market cap dynamically if outstanding_shares is available
-    const outstandingShares = metadata?.outstanding_shares ? parseFloat(metadata.outstanding_shares) : null;
-    const currentMarketPrice = marketDataMap[symbol]?.current_price ? parseFloat(marketDataMap[symbol].current_price) : null;
-    
+    const outstandingShares = metadata?.outstanding_shares
+      ? parseFloat(metadata.outstanding_shares)
+      : null;
+    const currentMarketPrice = marketDataMap[symbol]?.current_price
+      ? parseFloat(marketDataMap[symbol].current_price)
+      : null;
+
     // Dynamic market cap = current_price × outstanding_shares (both in appropriate units)
     // outstanding_shares is in crores, current_price is per share
     // Result will be in crores
-    const marketCap = (outstandingShares && currentMarketPrice) 
-      ? outstandingShares * currentMarketPrice 
-      : (metadata?.market_cap ? parseFloat(metadata.market_cap) : null);
-    
+    const marketCap =
+      outstandingShares && currentMarketPrice
+        ? outstandingShares * currentMarketPrice
+        : metadata?.market_cap
+          ? parseFloat(metadata.market_cap)
+          : null;
+
     const marketCapCategory = metadata?.market_cap_category || 'N/A';
 
     // Debug logging for first transaction

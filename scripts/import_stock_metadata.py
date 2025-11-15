@@ -41,13 +41,13 @@ with open(csv_file, 'r', encoding='utf-8') as f:
         # Prepare metadata
         current_price = float(row.get('Current Price', 0)) if row.get('Current Price') else None
         market_cap = float(row['Market Capitalization']) if row.get('Market Capitalization') else None
-        
+
         # Calculate outstanding shares (in crores)
         # Formula: outstanding_shares = market_cap / current_price
         outstanding_shares = None
         if market_cap and current_price and current_price > 0:
             outstanding_shares = market_cap / current_price
-        
+
         metadata = {
             'symbol': symbol.upper().strip(),
             'company_name': row.get('Security Name', '').strip(),
